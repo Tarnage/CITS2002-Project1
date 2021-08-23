@@ -95,11 +95,13 @@ void report_statistics(void)
 
 AWORD read_memory(int address)
 {
+    ++n_main_memory_reads;
     return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
-{
+{   
+    ++n_main_memory_writes;
     main_memory[address] = value;
 }
 
@@ -136,6 +138,15 @@ int execute_stackmachine(void)
     return read_memory(SP);
 }
 
+void printArray(AWORD arr[], int length)
+{   
+    printf("Main memory Stack:\n");
+    for (int i = 0; i < length; ++i){
+        printf("%u ", arr[i]);
+    }
+    printf("\n");
+}
+
 //  -------------------------------------------------------------------
 
 //  READ THE PROVIDED coolexe FILE INTO main_memory[]
@@ -144,14 +155,23 @@ void read_coolexe_file(char filename[])
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
 
 //  READ CONTENTS OF coolexe FILE
-    FILE *fp = fopen("filename", "rb");
+    FILE    *fp_in = fopen(filename, "rb");
+    //FILE    *fp_out = fopen("test.bin", "wb");
 
-
-    fread(main_memory, N_MAIN_MEMORY_WORDS, sizeof main_memory, fp);
-    printf("exe file: %hu", main_memory[1]);
+    IWORD buffer[N_MAIN_MEMORY_WORDS];
+    AWORD address;
     
+    if(fp_in == NULL) {
+        printf( "cannot open dictionary '%s'\n", filename);
+        exit(EXIT_FAILURE);
+    }
 
-    fclose(fp);
+    fread(buffer, sizeof (buffer), 1, fp_in);
+
+    for(address = 0; address < 25; ++address){
+        write_memory(address, buffer[address]);
+    }
+    fclose(fp_in);
 }
 
 //  -------------------------------------------------------------------
@@ -159,17 +179,17 @@ void read_coolexe_file(char filename[])
 int main(int argc, char *argv[])
 {
 //  CHECK THE NUMBER OF ARGUMENTS
-    if(argc != 2) {
+    if(argc != 1) {
         fprintf(stderr, "Usage: %s program.coolexe\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
-    read_coolexe_file(argv[1]);
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
-
+    printArray(main_memory, 25);
     report_statistics();
 
     return result;          // or  exit(result);
