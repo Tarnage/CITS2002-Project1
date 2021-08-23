@@ -151,27 +151,40 @@ void printArray(AWORD arr[], int length)
 
 //  READ THE PROVIDED coolexe FILE INTO main_memory[]
 void read_coolexe_file(char filename[])
-{
+{   
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
+    IWORD buffer[N_MAIN_MEMORY_WORDS];
+    AWORD address;
+    AWORD size;
 
 //  READ CONTENTS OF coolexe FILE
     FILE    *fp_in = fopen(filename, "rb");
     //FILE    *fp_out = fopen("test.bin", "wb");
 
-    IWORD buffer[N_MAIN_MEMORY_WORDS];
-    AWORD address;
-    
+    // Checks file was opened successfully
     if(fp_in == NULL) {
         printf( "cannot open dictionary '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    fread(buffer, sizeof (buffer), 1, fp_in);
+    // Finds the size or count of instructions in the exe file
+    fseek(fp_in, 0, SEEK_END);
+    // ftell returns single bytes
+    // size is actually half since each word is 2 bytes 
+    size = ftell(fp_in) / 2;
+    // rewind file pointer back to the beginning of file
+    rewind(fp_in);
 
-    for(address = 0; address < 25; ++address){
+    // Check size is correct
+    printf("Size of file: %u\n", size);
+
+    fread(buffer, sizeof (buffer), 1, fp_in);
+    fclose(fp_in);
+
+    // write the instructions to main memory
+    for(address = 0; address < size; ++address){
         write_memory(address, buffer[address]);
     }
-    fclose(fp_in);
 }
 
 //  -------------------------------------------------------------------
