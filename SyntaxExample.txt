@@ -1,0 +1,44 @@
+The cool programming language syntax — [...] zero or one,   (...)* zero or more
+
+program:
+        ( definition )*
+
+definition:
+           int IDENT [ "=" intconst ] ";"
+        |  int IDENT "(" formalparams ")" block
+        | void IDENT "(" formalparams ")" block
+
+formalparams:
+          void
+        | int IDENT ( "," int IDENT )*
+
+block:
+        "{" ( definition | statement )* "}"
+
+statement:
+            definition
+        |   block
+        |  IDENT "=" expression ";"
+        |     if "(" expression ")" block [ else block ]
+        |  while "(" expression ")" block
+        |  return [ expression ] ";"
+        |  print  ( string | expression ) ";"
+        |  IDENTvalue ";"
+
+expression:
+          term   [ ("+" | "-")  expression ]
+
+term:
+          factor [ ("*" | "/")  term ]
+
+factor:
+          intconst
+        | IDENTvalue
+        | "(" expression ")"
+
+IDENTvalue:
+          IDENT [ "(" actualparams ")" ]
+
+actualparams:
+          expression ( "," expression )*
+        | empty
