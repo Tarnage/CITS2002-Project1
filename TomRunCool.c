@@ -146,10 +146,10 @@ void read_coolexe_file(char filename[])
 //  READ CONTENTS OF coolexe FILE
     FILE *fp = fopen("filename", "rb");
 
-    while (!EOF){
-        fread(main_memory, N_MAIN_MEMORY_WORDS, sizeof main_memory, fp);
-        printf("exe file: %p", main_memory);
-    }
+
+    fread(main_memory, N_MAIN_MEMORY_WORDS, sizeof main_memory, fp);
+    printf("exe file: %hu", main_memory[1]);
+    
 
     fclose(fp);
 }
