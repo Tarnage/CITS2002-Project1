@@ -111,10 +111,10 @@ int execute_stackmachine(void)
 //  THE 3 ON-CPU CONTROL REGISTERS:
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
-    int FP      = 0;                    // frame pointer
+    //int FP      = 0;                    // frame pointer
 
 //  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
-    FP = FP;
+    //FP = FP;
 
     while(true) {
 
@@ -148,7 +148,7 @@ void read_coolexe_file(char filename[])
 
     while (!EOF){
         fread(main_memory, N_MAIN_MEMORY_WORDS, sizeof main_memory, fp);
-        printf("exe file: %d", main_memory);
+        printf("exe file: %p", main_memory);
     }
 
     fclose(fp);
