@@ -34,7 +34,7 @@ void decimalToHexa(uint16_t decimal)
 int main(int argc, char *argv[])
 {
 
-    decimalToHexa(192);
+    decimalToHexa(3072);
 
     return 0;
 }
