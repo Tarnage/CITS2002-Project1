@@ -28,13 +28,19 @@ void decimalToHexa(uint16_t decimal)
     
     //test 
     printf("The Hexa of %u is: %s\n", decimal, hexadecimal);
+
 }
 
 
 int main(int argc, char *argv[])
 {
 
-    decimalToHexa(3072);
+    decimalToHexa(192);
+    
+    char hexa[] = "C";
+    int16_t num = hexa - '0';
+
+    printf("Hexa %s is int16_t: %i\n", hexa, num);
 
     return 0;
 }
