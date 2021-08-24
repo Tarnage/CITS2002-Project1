@@ -5,9 +5,9 @@
 #include <string.h>
 #include <unistd.h>
 
-// TODO
-// This function will push constant to the stack
-// no need to convert decimal to hexa since its just pushing a constant to the stack
+//  TODO
+// push absolute
+// the word immediately following the 'pusha' instruction holds the address of the integer value to be pushed onto the stack
 
 //  EACH WORD OF MEMORY CAN STORE A 16-bit UNSIGNED ADDRESS (0 to 65535)
 #define AWORD               uint16_t
@@ -21,7 +21,6 @@ AWORD                       main_memory[SIZE];
 //  THE SMALL-BUT-FAST CACHE HAS 32 WORDS OF MEMORY
 #define N_CACHE_WORDS       32
 
-
 AWORD read_memory(int address)
 {
     return main_memory[address];
@@ -32,16 +31,12 @@ void write_memory(AWORD address, AWORD value)
     main_memory[address] = value;
 }
 
-// THIS FUNCTION SHOULD PUSH CONSTANTS FROM THE PROGRAM COUNTER TO THE STACK
-void pushc(int SP, int PC)
-{   
-    AWORD temp;
-    temp = read_memory(PC);
-    write_memory(SP, temp);
+void pusha(uint16_t decimal)
+{
     return;
 }
 
-void printMainMemory(AWORD arr[], int length)
+void printArray(AWORD arr[], int length)
 {   
     printf("Main memory:\n");
     for (int i = 0; i < length; ++i){
@@ -50,18 +45,10 @@ void printMainMemory(AWORD arr[], int length)
     printf("\n");
 }
 
-void printStack(AWORD arr[], int length)
-{   
-    printf("Stack:\n");
-    for (int i = length; i >= 0; --i){
-        printf("%u ", arr[i]);
-    }
-    printf("\n");
-}
 int main(int argc, char *argv[])
 {   
     int PC = 0;
-    int SP = SIZE;
+    //int SP = SIZE;
 
     // INIT SOME RANDOM VALUES TO MAIN MEMORY
     write_memory(PC, 7);
@@ -69,20 +56,13 @@ int main(int argc, char *argv[])
     write_memory(PC, 3);
     ++PC;
     write_memory(PC, 2);
+    ++PC;                                         // This should return 2, 512 is the decimal value of hexa "0200"
+    write_memory(PC, 512);                        // This is the address to the int value to be pushed onto stack 
 
-    --SP;
-    pushc(SP, PC);
-    --PC;
-    --SP;
-    pushc(SP, PC);
-    --PC;
-    --SP;
-    pushc(SP, PC);
+    char hex[] = "0020";
 
-    printMainMemory(main_memory, SIZE);
-    printStack(main_memory, SIZE);
-    printf("PC: %i\n", PC);
-    printf("SP: %i\n", SP);
-
+    int16_t result = "0C00";
+    
+    printf("hex: %s = uint16_t: %i\n", hex, result);
     return 0;
 }

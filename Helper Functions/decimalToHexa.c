@@ -31,7 +31,6 @@ void decimalToHexa(uint16_t decimal)
 
 }
 
-
 int main(int argc, char *argv[])
 {
 
