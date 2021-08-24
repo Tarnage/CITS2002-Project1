@@ -154,7 +154,6 @@ void read_coolexe_file(char filename[])
 {   
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
     IWORD buffer[N_MAIN_MEMORY_WORDS];
-    AWORD address;
     AWORD size;
 
 //  READ CONTENTS OF coolexe FILE
@@ -181,7 +180,11 @@ void read_coolexe_file(char filename[])
     fread(buffer, sizeof (buffer), 1, fp_in);
     fclose(fp_in);
 
+    // test
+    printf("Valuse should be -1: %i\n", buffer[13]);
+
     // write the instructions to main memory
+    AWORD address;
     for(address = 0; address < size; ++address){
         write_memory(address, buffer[address]);
     }
