@@ -7,7 +7,8 @@
 
 // TODO
 // This function will push constant to the stack
-// no need to convert decimal to hexa since its just pushing a constant to the stack
+//push integer constant
+//the integer constant in the word immediately following the 'pushc' instruction is pushed onto the stack
 
 //  EACH WORD OF MEMORY CAN STORE A 16-bit UNSIGNED ADDRESS (0 to 65535)
 #define AWORD               uint16_t
@@ -60,26 +61,32 @@ void printStack(AWORD arr[], int SP)
 }
 int main(int argc, char *argv[])
 {   
-    int PC = 0;
+    int PC = -1;
     int SP = SIZE -1;
 
     // INIT SOME RANDOM VALUES TO MAIN MEMORY
+    ++PC;
     write_memory(PC, 7);
+
     ++PC;
     write_memory(PC, 3);
+
     ++PC;
     write_memory(PC, 2);
 
     --SP;
     pushc(SP, PC);
     --PC;
+
     --SP;
     pushc(SP, PC);
     --PC;
+
     --SP;
     pushc(SP, PC);
+    --PC;
 
-    printMainMemory(main_memory, SIZE);
+    printMainMemory(main_memory, 3);
     printStack(main_memory, SP);
     printf("PC: %i\n", PC);
     printf("SP: %i\n", SP);

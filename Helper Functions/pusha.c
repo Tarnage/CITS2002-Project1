@@ -59,12 +59,14 @@ int main(int argc, char *argv[])
     ++PC;                                         // This should return 2, 512 is the decimal value of hexa "0200"
     write_memory(PC, 512);                        // This is the address to the int value to be pushed onto stack 
 
-    char hex[] = "0020";
+    uint16_t result = 65535;
 
-    uint16_t result = strtol(hex, NULL, 16);
+    IWORD sign = result;
 
+    
     //sscanf(hex, "0x%x", result);
     
-    printf("hex: %s = uint16_t: %i\n", hex, result);
+    printf("unsigned: %u and signed: %i\n", result, sign);
+
     return 0;
 }

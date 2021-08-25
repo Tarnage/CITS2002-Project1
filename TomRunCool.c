@@ -138,11 +138,11 @@ int execute_stackmachine(void)
     return read_memory(SP);
 }
 
-void printArray(unsigned char arr[], int length)
+void printArray(AWORD arr[], int length)
 {   
     printf("Read in Hex:\n");
     for (int i = 0; i < length; ++i){
-        printf("%x ", arr[i]);
+        printf("%i ", arr[i]);
     }
     printf("\n");
 }
@@ -153,7 +153,7 @@ void printArray(unsigned char arr[], int length)
 void read_coolexe_file(char filename[])
 {   
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
-    unsigned char buffer[N_MAIN_MEMORY_WORDS];
+    AWORD buffer[N_MAIN_MEMORY_WORDS];
     AWORD size;
 
 //  READ CONTENTS OF coolexe FILE
@@ -170,14 +170,14 @@ void read_coolexe_file(char filename[])
     fseek(fp_in, 0, SEEK_END);
     // ftell returns single bytes
     // size is actually half since each word is 2 bytes 
-    size = ftell(fp_in);
+    size = ftell(fp_in) / 2;
     // rewind file pointer back to the beginning of file
     rewind(fp_in);
 
     // Check size is correct
     printf("Size of file: %u\n", size);
 
-    fread(buffer, sizeof(buffer) *2, 1, fp_in);
+    fread(buffer, sizeof(buffer), 1, fp_in);
     fclose(fp_in);
 
     printArray(buffer, 50);
