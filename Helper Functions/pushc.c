@@ -50,10 +50,10 @@ void printMainMemory(AWORD arr[], int length)
     printf("\n");
 }
 
-void printStack(AWORD arr[], int length)
+void printStack(AWORD arr[], int SP)
 {   
     printf("Stack:\n");
-    for (int i = length; i >= 0; --i){
+    for (int i = SP; i < SIZE; ++i){
         printf("%u ", arr[i]);
     }
     printf("\n");
@@ -61,7 +61,7 @@ void printStack(AWORD arr[], int length)
 int main(int argc, char *argv[])
 {   
     int PC = 0;
-    int SP = SIZE;
+    int SP = SIZE -1;
 
     // INIT SOME RANDOM VALUES TO MAIN MEMORY
     write_memory(PC, 7);
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     pushc(SP, PC);
 
     printMainMemory(main_memory, SIZE);
-    printStack(main_memory, SIZE);
+    printStack(main_memory, SP);
     printf("PC: %i\n", PC);
     printf("SP: %i\n", SP);
 

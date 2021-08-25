@@ -61,7 +61,9 @@ int main(int argc, char *argv[])
 
     char hex[] = "0020";
 
-    int16_t result = "0C00";
+    uint16_t result = strtol(hex, NULL, 16);
+
+    //sscanf(hex, "0x%x", result);
     
     printf("hex: %s = uint16_t: %i\n", hex, result);
     return 0;
