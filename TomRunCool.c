@@ -180,7 +180,7 @@ void read_coolexe_file(char filename[])
     fread(buffer, sizeof(buffer), 1, fp_in);
     fclose(fp_in);
 
-    printArray(buffer, 50);
+    printArray(buffer, 25);
     // test
     //printf("Valuse should be -1: %i\n", buffer[13]);
 
@@ -196,13 +196,13 @@ void read_coolexe_file(char filename[])
 int main(int argc, char *argv[])
 {
 //  CHECK THE NUMBER OF ARGUMENTS
-    if(argc != 1) {
-        fprintf(stderr, "Usage: %s program.coolexe\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+//    if(argc != 1) {
+//        fprintf(stderr, "Usage: %s program.coolexe\n", argv[0]);
+//        exit(EXIT_FAILURE);
+//    }
 
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
-    read_coolexe_file("parameters.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
