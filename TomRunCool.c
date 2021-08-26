@@ -95,13 +95,11 @@ void report_statistics(void)
 
 AWORD read_memory(int address)
 {
-    ++n_main_memory_reads;
     return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
-{   
-    ++n_main_memory_writes;
+{
     main_memory[address] = value;
 }
 
@@ -126,21 +124,73 @@ int execute_stackmachine(void)
 
 //      printf("%s\n", INSTRUCTION_name[instruction]);
 
-        if(instruction == I_HALT) {
-            break;
-        }
+        switch(instruction)
+        {
+            case I_HALT:
+                break;
 
-//  SUPPORT OTHER INSTRUCTIONS HERE
-//      ....
+            case I_NOP:
+                break;
+
+            case I_ADD:
+                break;
+
+            case I_SUB:
+                break;
+            
+            case I_MULT:
+                break;
+
+            case I_DIV:
+                break;
+
+            case I_CALL:
+                break;
+
+            case I_RETURN:
+                break;
+
+            case I_JMP:
+                break;
+
+            case I_JEQ:
+                break;
+
+            case I_PRINTI:
+                break;
+
+            case I_PRINTS:
+                break;
+            
+            case I_PUSHC:
+                break;
+
+            case I_PUSHA:
+                break;
+
+            case I_PUSHR:
+                break;
+
+            case I_POPA:
+                break;
+            
+            case I_POPR:
+                break;
+
+            default:
+                printf("Error! operator is not correct");
+        }
     }
 
 //  THE RESULT OF EXECUTING THE INSTRUCTIONS IS FOUND ON THE TOP-OF-STACK
     return read_memory(SP);
 }
 
+//  -------------------------------------------------------------------
+
 void printArray(AWORD arr[], int length)
 {   
-    printf("Read in Hex:\n");
+    printf("Read in file:\n");
     for (int i = 0; i < length; ++i){
         printf("%i ", arr[i]);
     }
@@ -148,17 +198,15 @@ void printArray(AWORD arr[], int length)
 }
 
 //  -------------------------------------------------------------------
-
 //  READ THE PROVIDED coolexe FILE INTO main_memory[]
 void read_coolexe_file(char filename[])
-{   
+{
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
     AWORD buffer[N_MAIN_MEMORY_WORDS];
     AWORD size;
 
 //  READ CONTENTS OF coolexe FILE
     FILE    *fp_in = fopen(filename, "rb");
-    //FILE    *fp_out = fopen("test.bin", "wb");
 
     // Checks file was opened successfully
     if(fp_in == NULL) {
@@ -168,27 +216,23 @@ void read_coolexe_file(char filename[])
 
     // Finds the size or count of instructions in the exe file
     fseek(fp_in, 0, SEEK_END);
+
     // ftell returns single bytes
     // size is actually half since each word is 2 bytes 
     size = ftell(fp_in) / 2;
+
     // rewind file pointer back to the beginning of file
     rewind(fp_in);
 
-    // Check size is correct
-    printf("Size of file: %u\n", size);
-
+    // read in exe file
     fread(buffer, sizeof(buffer), 1, fp_in);
+    // don't forget to close the file
     fclose(fp_in);
 
-    printArray(buffer, 25);
-    // test
-    //printf("Valuse should be -1: %i\n", buffer[13]);
-
-    // write the instructions to main memory
-    //AWORD address;
-    //for(address = 0; address < size; address += 2) {
-    //    write_memory(address, buffer[address -1] + buffer[address]);
-    //}
+    // write the contents to memory
+    for(AWORD i = 0; i < size; ++i) {
+        write_memory(i, buffer[i]);
+    }
 }
 
 //  -------------------------------------------------------------------
@@ -196,18 +240,23 @@ void read_coolexe_file(char filename[])
 int main(int argc, char *argv[])
 {
 //  CHECK THE NUMBER OF ARGUMENTS
-//    if(argc != 1) {
+
+//    if(argc != 2) {
 //        fprintf(stderr, "Usage: %s program.coolexe\n", argv[0]);
 //        exit(EXIT_FAILURE);
 //    }
 
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
+//    read_coolexe_file(argv[1]);
+// ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
     read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
-
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
-    int result = execute_stackmachine();
-    //printArray(main_memory, 25);
+//    int result = execute_stackmachine();
+
     report_statistics();
 
-    return result;          // or  exit(result);
+//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
+    printArray(main_memory, 25);
+
+    return 0;          // or  exit(result);
 }
