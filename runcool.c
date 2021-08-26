@@ -124,12 +124,62 @@ int execute_stackmachine(void)
 
 //      printf("%s\n", INSTRUCTION_name[instruction]);
 
-        if(instruction == I_HALT) {
-            break;
-        }
+        switch(instruction)
+        {
+            case I_HALT:
+                break;
 
-//  SUPPORT OTHER INSTRUCTIONS HERE
-//      ....
+            case I_NOP:
+                break;
+
+            case I_ADD:
+                break;
+
+            case I_SUB:
+                break;
+            
+            case I_MULT:
+                break;
+
+            case I_DIV:
+                break;
+
+            case I_CALL:
+                break;
+
+            case I_RETURN:
+                break;
+
+            case I_JMP:
+                break;
+
+            case I_JEQ:
+                break;
+
+            case I_PRINTI:
+                break;
+
+            case I_PRINTS:
+                break;
+            
+            case I_PUSHC:
+                break;
+
+            case I_PUSHA:
+                break;
+
+            case I_PUSHR:
+                break;
+
+            case I_POPA:
+                break;
+            
+            case I_POPR:
+                break;
+
+            default:
+                printf("Error! operator is not correct");
+        }
     }
 
 //  THE RESULT OF EXECUTING THE INSTRUCTIONS IS FOUND ON THE TOP-OF-STACK
