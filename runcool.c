@@ -29,22 +29,22 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
-    I_NOP        = 1,
-    I_ADD        = 2,
-    I_SUB        = 3,
-    I_MULT       = 4,
-    I_DIV        = 5,
-    I_CALL       = 6,
-    I_RETURN     = 7,
-    I_JMP        = 8,
-    I_JEQ        = 9,
-    I_PRINTI     = 10,
-    I_PRINTS     = 11,
-    I_PUSHC      = 12,
-    I_PUSHA      = 13,
-    I_PUSHR      = 14,
-    I_POPA       = 15,
-    I_POPR       = 16
+    I_NOP,
+    I_ADD,
+    I_SUB,
+    I_MULT,
+    I_DIV,
+    I_CALL,
+    I_RETURN,
+    I_JMP,
+    I_JEQ,
+    I_PRINTI,
+    I_PRINTS,
+    I_PUSHC,
+    I_PUSHA,
+    I_PUSHR,
+    I_POPA,
+    I_POPR
 };
 
 //  USE VALUES OF enum INSTRUCTION TO INDEX THE INSTRUCTION_name[] ARRAY
@@ -105,6 +105,12 @@ void write_memory(AWORD address, AWORD value)
 
 //  -------------------------------------------------------------------
 
+// HELPER FUNCTIONS GO HERE
+
+
+
+//  -------------------------------------------------------------------
+
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
 int execute_stackmachine(void)
 {
@@ -116,69 +122,83 @@ int execute_stackmachine(void)
 //  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
     //FP = FP;
 
-    while(true) {
+    bool start = true;
+    while(start) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
         ++PC;
 
-//      printf("%s\n", INSTRUCTION_name[instruction]);
-
         switch(instruction)
         {
             case I_HALT:
+                printf("Entered HALT\n");
+                start = false;
                 break;
 
             case I_NOP:
+                printf("Entered NOP\n");
                 break;
 
             case I_ADD:
+                printf("Entered ADD\n");
                 break;
 
             case I_SUB:
+                printf("Entered SUB\n");
                 break;
             
             case I_MULT:
+                printf("Entered MULT\n");
                 break;
 
             case I_DIV:
+                printf("Entered DIV\n");
                 break;
 
             case I_CALL:
+                printf("Entered CALL\n");
                 break;
 
             case I_RETURN:
+                printf("Entered RETURN\n");
                 break;
 
             case I_JMP:
+                printf("Entered JMP\n");
                 break;
 
             case I_JEQ:
+                printf("Entered JEQ\n");
                 break;
 
             case I_PRINTI:
+                printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
+                printf("Entered PRINTI\n");
                 break;
             
             case I_PUSHC:
+                printf("Entered PUSHC\n");
                 break;
 
             case I_PUSHA:
+                printf("Entered PUSHA\n");
                 break;
 
             case I_PUSHR:
+                printf("Entered PUSHR\n");
                 break;
 
             case I_POPA:
+                printf("Entered POPA\n");
                 break;
             
             case I_POPR:
+                printf("Entered POPR\n");
                 break;
-
-            default:
-                printf("Error! operator is not correct");
         }
     }
 
@@ -190,7 +210,7 @@ int execute_stackmachine(void)
 
 void printArray(AWORD arr[], int length)
 {   
-    printf("Read in file:\n");
+    printf("Current Memory PC:\n");
     for (int i = 0; i < length; ++i){
         printf("%i ", arr[i]);
     }
@@ -251,7 +271,7 @@ int main(int argc, char *argv[])
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
     read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
-//    int result = execute_stackmachine();
+    int result = execute_stackmachine();
 
     report_statistics();
 
