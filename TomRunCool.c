@@ -210,13 +210,19 @@ int execute_stackmachine(void)
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
+        printf("PC Value: %i\n", PC);
         ++PC;
-        
+
+// maybe put off set values into cache?
+        IWORD offset = read_memory(PC);
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
+    
     printArray(PC, size);
 
 // PRINTS REGISTERS
-//        printStack(SP);
+        printf("SP Value: %i\n", SP);
+        printStack(SP);
+        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
 
         if(instruction == I_HALT){
@@ -255,24 +261,35 @@ int execute_stackmachine(void)
                 break;
 
             case I_CALL:
+                //TODO CHECK CORRECTNESS
                 printf("Entered CALL\n");
+                //saved return address
+                --SP;
+                write_memory(SP, PC + 1);
                 --SP;
                 write_memory(SP, FP);
-                --SP;
-                write_memory(SP + 1, PC + 1);
                 FP = SP;
                 PC = read_memory(PC);
                 break;
 
             case I_RETURN:
+            //TODO CHECK CORRECTNESS
                 printf("Entered RETURN\n");
+
+            //value to be placed back on top of stack
                 IWORD valueReturned = read_memory(SP);
-                ++SP;
-                FP = read_memory(SP);
-                ++SP;
-                PC = read_memory(SP);
-                ++SP;
-                write_memory(SP, valueReturned);
+
+            // PC goes back to the following instruction that called current function
+                PC = read_memory(FP + 1);
+
+            // calculated return value
+                write_memory(FP + offset, valueReturned);
+
+            // SP reset to tos
+                SP = FP + offset;
+
+            //FP reset
+                FP = read_memory(FP);
                 break;
 
             case I_JMP:
@@ -308,8 +325,12 @@ int execute_stackmachine(void)
                 break;
 
             case I_PUSHR:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered PUSHR\n");
+                ++PC;
+                IWORD temp = read_memory(FP + offset);
+                --SP;
+                write_memory(SP, temp);
                 break;
 
             case I_POPA:
@@ -318,8 +339,13 @@ int execute_stackmachine(void)
                 break;
             
             case I_POPR:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered POPR\n");
+                ++PC;
+                IWORD pop = read_memory(SP);
+
+                write_memory(FP + offset, pop);
+                SP = FP + offset;
                 break;
         }
     }
@@ -380,7 +406,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/atimesb.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/fpexample.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
