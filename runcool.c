@@ -107,7 +107,14 @@ void write_memory(AWORD address, AWORD value)
 
 // HELPER FUNCTIONS GO HERE
 
-
+void printArray(AWORD arr[], int length)
+{   
+    printf("Current Memory PC:\n");
+    for (int i = 0; i < length; ++i){
+        printf("%i ", arr[i]);
+    }
+    printf("\n");
+}
 
 //  -------------------------------------------------------------------
 
@@ -207,17 +214,6 @@ int execute_stackmachine(void)
 }
 
 //  -------------------------------------------------------------------
-
-void printArray(AWORD arr[], int length)
-{   
-    printf("Current Memory PC:\n");
-    for (int i = 0; i < length; ++i){
-        printf("%i ", arr[i]);
-    }
-    printf("\n");
-}
-
-//  -------------------------------------------------------------------
 //  READ THE PROVIDED coolexe FILE INTO main_memory[]
 void read_coolexe_file(char filename[])
 {
@@ -269,7 +265,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
+    read_coolexe_file("parameters.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
@@ -278,5 +274,5 @@ int main(int argc, char *argv[])
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
     printArray(main_memory, 25);
 
-    return 0;          // or  exit(result);
+    return result;          // or  exit(result);
 }
