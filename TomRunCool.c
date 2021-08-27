@@ -95,16 +95,35 @@ void report_statistics(void)
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
 
+// STILL NEED TO WORK OUT THE CACHE HIT/MISS METRICS
+
 AWORD read_memory(int address)
-{
-    ++n_main_memory_reads;
-    return main_memory[address];
+{   
+    if( (N_MAIN_MEMORY_WORDS - address) <= N_CACHE_WORDS ){
+        ++n_cache_memory_hits;
+        return cache[N_MAIN_MEMORY_WORDS - address];
+    }
+    else {
+        ++n_cache_memory_misses;
+        ++n_main_memory_reads;
+        return main_memory[address];
+    }
 }
 
 void write_memory(AWORD address, AWORD value)
 {   
-    ++n_main_memory_writes;
-    main_memory[address] = value;
+    if( (N_MAIN_MEMORY_WORDS - address) <= N_CACHE_WORDS ){
+        ++n_cache_memory_hits;
+        cache[N_MAIN_MEMORY_WORDS - address] = value;
+        main_memory[address] = value;
+    }
+    else{
+        //not sure if we need cache misses in write memory
+        ++n_cache_memory_misses;
+        ++n_main_memory_writes;
+        main_memory[address] = value;
+    }
+    
 }
 
 //  -------------------------------------------------------------------
@@ -146,6 +165,15 @@ void printFrame(int FP)
         for (int i = FP - 3; i != FP + 4; ++i){
             printf("%u ", main_memory[i]);
         }
+    }
+    printf("\n");
+}
+
+void printCache()
+{   
+    printf("Current Cache :\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", cache[i]);
     }
     printf("\n");
 }
@@ -215,7 +243,7 @@ int execute_stackmachine(void)
 
 // maybe put off set values into cache?
         IWORD offset = read_memory(PC);
-        
+
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
     
         printArray(PC, size);
@@ -225,6 +253,7 @@ int execute_stackmachine(void)
         printStack(SP);
         printf("FP Value: %i\n", FP);
 //        printFrame(FP);
+        printCache();
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -391,6 +420,8 @@ void read_coolexe_file(char filename[])
     for(AWORD i = 0; i < size; ++i) {
         write_memory(i, buffer[i]);
     }
+    // reset cache misses from initial read of file
+    n_cache_memory_misses = 0;
 }
 
 //  -------------------------------------------------------------------
