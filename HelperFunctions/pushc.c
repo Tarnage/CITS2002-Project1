@@ -61,18 +61,18 @@ void printStack(AWORD arr[], int SP)
 }
 int main(int argc, char *argv[])
 {   
-    int PC = -1;
-    int SP = SIZE -1;
+    int PC = 0;
+    int SP = SIZE;
 
     // INIT SOME RANDOM VALUES TO MAIN MEMORY
-    ++PC;
     write_memory(PC, 7);
-
     ++PC;
+
     write_memory(PC, 3);
-
     ++PC;
+
     write_memory(PC, 2);
+    ++PC;
 
     --SP;
     pushc(SP, PC);
