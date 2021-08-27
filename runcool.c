@@ -128,8 +128,15 @@ void printStack(int SP)
         }
     }
     printf("\n");
-    
 }
+
+void pushc(int PC, int SP)
+{
+    IWORD temp;
+    temp = read_memory(PC);
+    write_memory(SP, temp);
+}
+
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -182,6 +189,9 @@ int execute_stackmachine(void)
 
             case I_CALL:
                 printf("Entered CALL\n");
+                IWORD temp_address = read_memory(PC);
+                IWORD temp_instruct = read_memory(temp_address);
+                write_memory(PC, temp_instruct);
                 break;
 
             case I_RETURN:
@@ -206,6 +216,9 @@ int execute_stackmachine(void)
             
             case I_PUSHC:
                 printf("Entered PUSHC\n");
+                --SP;
+                pushc(PC, SP);
+                ++PC;
                 break;
 
             case I_PUSHA:
