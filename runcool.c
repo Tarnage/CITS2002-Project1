@@ -202,9 +202,6 @@ int execute_stackmachine(void)
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
     int FP      = 0;                    // frame pointer
-
-//  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
-    //FP = FP + 0;
     
     while(true) {
 
