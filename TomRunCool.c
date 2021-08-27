@@ -254,16 +254,22 @@ int execute_stackmachine(void)
             case I_CALL:
                 printf("Entered CALL\n");
                 --SP;
-                pushc(SP, PC + 1);
+                write_memory(SP, FP);
                 --SP;
-                pushc(SP, FP);
+                write_memory(SP + 1, PC + 1);
                 FP = SP;
                 PC = read_memory(PC);
                 break;
 
             case I_RETURN:
                 printf("Entered RETURN\n");
-                PC = read_memory(FP + 1);
+                IWORD valueReturned = read_memory(SP);
+                ++SP;
+                FP = read_memory(SP);
+                ++SP;
+                PC = read_memory(SP);
+                ++SP;
+                write_memory(SP, valueReturned);
                 break;
 
             case I_JMP:
@@ -363,7 +369,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/asubb.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/atimesb.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
