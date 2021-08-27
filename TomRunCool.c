@@ -97,11 +97,13 @@ void report_statistics(void)
 
 AWORD read_memory(int address)
 {
+    ++n_main_memory_reads;
     return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
-{
+{   
+    ++n_main_memory_writes;
     main_memory[address] = value;
 }
 
@@ -132,6 +134,20 @@ void printStack(int SP)
     printf("\n");
 }
 
+void printFrame(int FP)
+{   
+    if(FP == 0){
+        printf("Frame is empty.");
+    }
+    else{
+        printf("Current Frame:\n");
+        for (int i = FP - 3; i != FP + 4; ++i){
+            printf("%u ", main_memory[i]);
+        }
+    }
+    printf("\n");
+}
+
 void pushc(int PC, int SP)
 {
     IWORD temp;
@@ -139,6 +155,41 @@ void pushc(int PC, int SP)
     write_memory(SP, temp);
 }
 
+void add(int SP)
+{
+    IWORD temp1, temp2;
+    temp1 = read_memory(SP);
+    ++SP;
+    temp2 = read_memory(SP);
+    write_memory(SP, temp1 + temp2);
+}
+
+void multi(int SP)
+{
+    IWORD temp1, temp2;
+    temp1 = read_memory(SP);
+    ++SP;
+    temp2 = read_memory(SP);
+    write_memory(SP, temp1 * temp2);
+}
+
+void sub(int SP)
+{
+    IWORD temp1, temp2;
+    temp1 = read_memory(SP);
+    ++SP;
+    temp2 = read_memory(SP);
+    write_memory(SP, temp2 - temp1);
+}
+
+void divide(int SP)
+{
+    IWORD temp1, temp2;
+    temp1 = read_memory(SP);
+    ++SP;
+    temp2 = read_memory(SP);
+    write_memory(SP, temp2 / temp1);
+}
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -160,7 +211,10 @@ int execute_stackmachine(void)
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
         ++PC;
+
+// PRINTS REGISTERS
         printStack(SP);
+        printFrame(FP);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -175,41 +229,35 @@ int execute_stackmachine(void)
 
             case I_ADD:
                 printf("Entered ADD\n");
-                AWORD temp1 = read_memory(SP);
+                add(SP);
                 ++SP;
-                AWORD temp2 = read_memory(SP);
-                write_memory(SP, temp1 + temp2);
                 break;
 
             case I_SUB:
                 printf("Entered SUB\n");
-                AWORD temp1 = read_memory(SP);
+                sub(SP);
                 ++SP;
-                AWORD temp2 = read_memory(SP);
-                write_memory(SP, temp1 - temp2);
                 break;
             
             case I_MULT:
                 printf("Entered MULT\n");
-                AWORD temp1 = read_memory(SP);
+                multi(SP);
                 ++SP;
-                AWORD temp2 = read_memory(SP);
-                write_memory(SP, temp1 * temp2);
                 break;
 
             case I_DIV:
                 printf("Entered DIV\n");
-                AWORD temp1 = read_memory(SP);
+                divide(SP);
                 ++SP;
-                AWORD temp2 = read_memory(SP);
-                write_memory(SP, temp2 / temp1);
                 break;
 
             case I_CALL:
                 printf("Entered CALL\n");
                 --SP;
-                FP = PC - 3;
-                write_memory(FP + 1, PC + 1);
+                pushc(SP, PC + 1);
+                --SP;
+                pushc(SP, FP);
+                FP = SP;
                 PC = read_memory(PC);
                 break;
 
@@ -315,7 +363,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/aplusb.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/asubb.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
