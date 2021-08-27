@@ -274,18 +274,22 @@ int execute_stackmachine(void)
                 break;
 
             case I_JMP:
+            // TODO
                 printf("Entered JMP\n");
                 break;
 
             case I_JEQ:
+            // TODO
                 printf("Entered JEQ\n");
                 break;
 
             case I_PRINTI:
+            // TODO
                 printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
+            // TODO
                 printf("Entered PRINTI\n");
                 break;
             
@@ -297,18 +301,22 @@ int execute_stackmachine(void)
                 break;
 
             case I_PUSHA:
+            // TODO
                 printf("Entered PUSHA\n");
                 break;
 
             case I_PUSHR:
+            // TODO
                 printf("Entered PUSHR\n");
                 break;
 
             case I_POPA:
+            // TODO
                 printf("Entered POPA\n");
                 break;
             
             case I_POPR:
+            // TODO
                 printf("Entered POPR\n");
                 break;
         }

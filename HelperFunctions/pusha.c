@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
 
     uint16_t result = 65535;
 
-    IWORD sign = result;
+    int16_t sign = result;
 
     
     //sscanf(hex, "0x%x", result);
     
-    printf("unsigned: %u and signed: %i\n", result, sign);
+    printf("unsigned: %i and signed: %i\n", result, sign);
 
     return 0;
 }
