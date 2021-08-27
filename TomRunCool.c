@@ -110,6 +110,8 @@ void write_memory(AWORD address, AWORD value)
 //  -------------------------------------------------------------------
 
 // HELPER FUNCTIONS GO HERE
+// TESTING PURPOSES a global variable used to help print files
+AWORD size;
 
 void printArray(int length)
 {   
@@ -205,7 +207,7 @@ int execute_stackmachine(void)
     //FP = FP + 0;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    printArray(13);
+    printArray(size);
     
     while(true) {
 
@@ -332,7 +334,7 @@ void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
     AWORD buffer[N_MAIN_MEMORY_WORDS];
-    AWORD size;
+    
 
 //  READ CONTENTS OF coolexe FILE
     FILE    *fp_in = fopen(filename, "rb");
