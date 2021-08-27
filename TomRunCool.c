@@ -190,6 +190,7 @@ void divide(int SP)
     temp2 = read_memory(SP);
     write_memory(SP, temp2 / temp1);
 }
+
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
