@@ -117,12 +117,18 @@ void printArray(AWORD arr[], int length)
 }
 
 void printStack(int SP)
-{
-    printf("Current Stack:\n");
-    for (int i = SP; i < N_MAIN_MEMORY_WORDS; ++i){
-        printf("%i ", main_memory[i]);
+{   
+    if(SP == N_MAIN_MEMORY_WORDS){
+        printf("Stack is empty.");
+    }
+    else{
+        printf("Current Stack:\n");
+        for (int i = SP; i < N_MAIN_MEMORY_WORDS; ++i){
+            printf("%i ", main_memory[i]);
+        }
     }
     printf("\n");
+    
 }
 //  -------------------------------------------------------------------
 
@@ -143,6 +149,7 @@ int execute_stackmachine(void)
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
         ++PC;
+        printStack(SP);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
