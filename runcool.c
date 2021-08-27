@@ -116,6 +116,14 @@ void printArray(AWORD arr[], int length)
     printf("\n");
 }
 
+void printStack(int SP)
+{
+    printf("Current Stack:\n");
+    for (int i = SP; i < N_MAIN_MEMORY_WORDS; ++i){
+        printf("%i ", main_memory[i]);
+    }
+    printf("\n");
+}
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
