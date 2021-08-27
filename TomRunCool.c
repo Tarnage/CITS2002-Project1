@@ -215,9 +215,10 @@ int execute_stackmachine(void)
 
 // maybe put off set values into cache?
         IWORD offset = read_memory(PC);
+        
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
     
-    printArray(PC, size);
+        printArray(PC, size);
 
 // PRINTS REGISTERS
         printf("SP Value: %i\n", SP);
@@ -261,9 +262,9 @@ int execute_stackmachine(void)
                 break;
 
             case I_CALL:
-                //TODO CHECK CORRECTNESS
+            //TODO CHECK CORRECTNESS
                 printf("Entered CALL\n");
-                //saved return address
+            //saved return address
                 --SP;
                 write_memory(SP, PC + 1);
                 --SP;
