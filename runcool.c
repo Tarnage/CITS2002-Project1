@@ -107,11 +107,11 @@ void write_memory(AWORD address, AWORD value)
 
 // HELPER FUNCTIONS GO HERE
 
-void printArray(AWORD arr[], int length)
+void printArray(int length)
 {   
     printf("Current Memory PC:\n");
     for (int i = 0; i < length; ++i){
-        printf("%i ", arr[i]);
+        printf("%i ", main_memory[i]);
     }
     printf("\n");
 }
@@ -137,6 +137,8 @@ int execute_stackmachine(void)
 //  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
     FP = FP + 0;
 
+//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
+    printArray(25);
     
     while(true) {
 
@@ -278,9 +280,6 @@ int main(int argc, char *argv[])
     int result = execute_stackmachine();
 
     report_statistics();
-
-//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    printArray(main_memory, 25);
 
     return result;          // or  exit(result);
 }
