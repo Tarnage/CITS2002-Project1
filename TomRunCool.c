@@ -113,10 +113,10 @@ void write_memory(AWORD address, AWORD value)
 // TESTING PURPOSES a global variable used to help print files
 AWORD size;
 
-void printArray(int length)
+void printArray(int PC, int length)
 {   
     printf("Current Memory PC:\n");
-    for (int i = 0; i < length; ++i){
+    for (int i = PC - 1; i < length; ++i){
         printf("%i ", main_memory[i]);
     }
     printf("\n");
@@ -205,19 +205,19 @@ int execute_stackmachine(void)
 
 //  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
     //FP = FP + 0;
-
-//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    printArray(size);
     
     while(true) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
         ++PC;
+        
+//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
+    printArray(PC, size);
 
 // PRINTS REGISTERS
-        printStack(SP);
-        printFrame(FP);
+//        printStack(SP);
+//        printFrame(FP);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
