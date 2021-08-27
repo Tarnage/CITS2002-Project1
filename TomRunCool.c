@@ -25,26 +25,28 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 //  THE SMALL-BUT-FAST CACHE HAS 32 WORDS OF MEMORY
 #define N_CACHE_WORDS       32
 
+// THE CACHE
+AWORD                       cache[N_CACHE_WORDS];
 
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
-    I_NOP        = 1,
-    I_ADD        = 2,
-    I_SUB        = 3,
-    I_MULT       = 4,
-    I_DIV        = 5,
-    I_CALL       = 6,
-    I_RETURN     = 7,
-    I_JMP        = 8,
-    I_JEQ        = 9,
-    I_PRINTI     = 10,
-    I_PRINTS     = 11,
-    I_PUSHC      = 12,
-    I_PUSHA      = 13,
-    I_PUSHR      = 14,
-    I_POPA       = 15,
-    I_POPR       = 16
+    I_NOP,
+    I_ADD,
+    I_SUB,
+    I_MULT,
+    I_DIV,
+    I_CALL,
+    I_RETURN,
+    I_JMP,
+    I_JEQ,
+    I_PRINTI,
+    I_PRINTS,
+    I_PUSHC,
+    I_PUSHA,
+    I_PUSHR,
+    I_POPA,
+    I_POPR
 };
 
 //  USE VALUES OF enum INSTRUCTION TO INDEX THE INSTRUCTION_name[] ARRAY
@@ -105,96 +107,160 @@ void write_memory(AWORD address, AWORD value)
 
 //  -------------------------------------------------------------------
 
+// HELPER FUNCTIONS GO HERE
+
+void printArray(int length)
+{   
+    printf("Current Memory PC:\n");
+    for (int i = 0; i < length; ++i){
+        printf("%i ", main_memory[i]);
+    }
+    printf("\n");
+}
+
+void printStack(int SP)
+{   
+    if(SP == N_MAIN_MEMORY_WORDS){
+        printf("Stack is empty.");
+    }
+    else{
+        printf("Current Stack:\n");
+        for (int i = SP; i < N_MAIN_MEMORY_WORDS; ++i){
+            printf("%i ", main_memory[i]);
+        }
+    }
+    printf("\n");
+}
+
+void pushc(int PC, int SP)
+{
+    IWORD temp;
+    temp = read_memory(PC);
+    write_memory(SP, temp);
+}
+
+//  -------------------------------------------------------------------
+
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
 int execute_stackmachine(void)
 {
 //  THE 3 ON-CPU CONTROL REGISTERS:
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
-    //int FP      = 0;                    // frame pointer
+    int FP      = 0;                    // frame pointer
 
 //  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
-    //FP = FP;
+    //FP = FP + 0;
 
+//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
+    printArray(13);
+    
     while(true) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
         ++PC;
+        printStack(SP);
 
-//      printf("%s\n", INSTRUCTION_name[instruction]);
+        if(instruction == I_HALT){
+            printf("Entered HALT\n");
+            break;
+        }
 
         switch(instruction)
         {
-            case I_HALT:
-                break;
-
             case I_NOP:
+                printf("Entered NOP\n");
                 break;
 
             case I_ADD:
+                printf("Entered ADD\n");
+                AWORD temp1 = read_memory(SP);
+                ++SP;
+                AWORD temp2 = read_memory(SP);
+                write_memory(SP, temp1 + temp2);
                 break;
 
             case I_SUB:
+                printf("Entered SUB\n");
+                AWORD temp1 = read_memory(SP);
+                ++SP;
+                AWORD temp2 = read_memory(SP);
+                write_memory(SP, temp1 - temp2);
                 break;
             
             case I_MULT:
+                printf("Entered MULT\n");
+                AWORD temp1 = read_memory(SP);
+                ++SP;
+                AWORD temp2 = read_memory(SP);
+                write_memory(SP, temp1 * temp2);
                 break;
 
             case I_DIV:
+                printf("Entered DIV\n");
+                AWORD temp1 = read_memory(SP);
+                ++SP;
+                AWORD temp2 = read_memory(SP);
+                write_memory(SP, temp2 / temp1);
                 break;
 
             case I_CALL:
+                printf("Entered CALL\n");
+                --SP;
+                FP = PC - 3;
+                write_memory(FP + 1, PC + 1);
+                PC = read_memory(PC);
                 break;
 
             case I_RETURN:
+                printf("Entered RETURN\n");
+                PC = read_memory(FP + 1);
                 break;
 
             case I_JMP:
+                printf("Entered JMP\n");
                 break;
 
             case I_JEQ:
+                printf("Entered JEQ\n");
                 break;
 
             case I_PRINTI:
+                printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
+                printf("Entered PRINTI\n");
                 break;
             
             case I_PUSHC:
+                printf("Entered PUSHC\n");
+                --SP;
+                pushc(PC, SP);
+                ++PC;
                 break;
 
             case I_PUSHA:
+                printf("Entered PUSHA\n");
                 break;
 
             case I_PUSHR:
+                printf("Entered PUSHR\n");
                 break;
 
             case I_POPA:
+                printf("Entered POPA\n");
                 break;
             
             case I_POPR:
+                printf("Entered POPR\n");
                 break;
-
-            default:
-                printf("Error! operator is not correct");
         }
     }
 
 //  THE RESULT OF EXECUTING THE INSTRUCTIONS IS FOUND ON THE TOP-OF-STACK
     return read_memory(SP);
-}
-
-//  -------------------------------------------------------------------
-
-void printArray(AWORD arr[], int length)
-{   
-    printf("Read in file:\n");
-    for (int i = 0; i < length; ++i){
-        printf("%i ", arr[i]);
-    }
-    printf("\n");
 }
 
 //  -------------------------------------------------------------------
@@ -249,14 +315,13 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/parameters.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/aplusb.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
-//    int result = execute_stackmachine();
+    int result = execute_stackmachine();
 
     report_statistics();
 
-//  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    printArray(main_memory, 25);
+    printf("Returned result: %i \n", result);
 
-    return 0;          // or  exit(result);
+    return result;          // or  exit(result);
 }
