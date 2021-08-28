@@ -105,11 +105,9 @@ AWORD read_memory(int address)
     AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
 
     if( cacheAddress <= N_CACHE_WORDS ){
-        ++n_cache_memory_hits;
         return cache[cacheAddress];
     }
     else {
-        ++n_cache_memory_misses;
         ++n_main_memory_reads;
         return main_memory[address];
     }
@@ -120,13 +118,21 @@ void write_memory(AWORD address, AWORD value)
 // The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
     AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
 //    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
+// TODO how will main memory get the data from cache
+// check for dirty bits and clean bits
 
     if( cacheAddress <= N_CACHE_WORDS ){
+        // if cache is dirty write contents to main memory
+
+        ++n_cache_memory_hits;
+        // data will be stored in cache
         cache[cacheAddress] = value;
-        main_memory[address] = value;
+        // the address of the data will be stored in main memory
+        main_memory[address] = cacheAddress;
     }
     else{
         //not sure if we need cache misses in write memory
+        ++n_cache_memory_misses;
         ++n_main_memory_writes;
         main_memory[address] = value;
     }
@@ -443,6 +449,9 @@ void read_coolexe_file(char filename[])
     for(AWORD i = 0; i < size; ++i) {
         write_memory(i, buffer[i]);
     }
+
+// reset counter for wrtining to memory
+    n_cache_memory_misses = 0;
 }
 
 //  -------------------------------------------------------------------
@@ -459,7 +468,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/globalExtra.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/fpexample.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
