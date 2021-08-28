@@ -317,10 +317,12 @@ int execute_stackmachine(void)
             // PC goes back to the following instruction that called current function
                 PC = read_memory(FP + 1);
 
-            // calculated return value
+            // calculated return value placed in the FP offset
                 write_memory(FP + nextInstruction, valueReturned);
 
-            // SP reset to tos
+            // SP reset to actual TOS
+            // This might need to move to the top
+            // because of popr
                 SP = FP + nextInstruction;
 
             //FP reset
@@ -338,21 +340,17 @@ int execute_stackmachine(void)
                 printf("Entered JEQ\n");
                 IWORD popJEQ = read_memory(SP);
                 --SP;
-                if(popJEQ == 0){
-                    PC = nextInstruction;
-                }
-                else{
-                    ++PC;
-                }
+                if(popJEQ == 0) PC = nextInstruction;
+                else ++PC;
                 break;
 
             case I_PRINTI:
-            // TODO
+            // TODO IMPLEMENT
                 printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
-            // TODO
+            // TODO IMPLEMENT
                 printf("Entered PRINTI\n");
                 break;
             
@@ -392,6 +390,7 @@ int execute_stackmachine(void)
             
             case I_POPR:
             // TODO CHECK CORRECTNESS
+            // something to do with decrementing SP
                 printf("Entered POPR\n");
                 IWORD popR = read_memory(SP);
                 write_memory(FP + nextInstruction, popR);
@@ -460,7 +459,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/globalExtra.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/globalExtra.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
