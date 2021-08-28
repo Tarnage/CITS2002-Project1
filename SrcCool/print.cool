@@ -1,0 +1,6 @@
+int main(void)
+{
+    print(*result*);
+
+    return 0;
+}

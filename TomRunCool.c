@@ -95,13 +95,18 @@ void report_statistics(void)
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
 
+// TODO Implement write back cache
 // STILL NEED TO WORK OUT THE CACHE HIT/MISS METRICS
+// implement dirty clean tags
 
 AWORD read_memory(int address)
 {   
-    if( (N_MAIN_MEMORY_WORDS - address) <= N_CACHE_WORDS ){
+// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
+    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+
+    if( cacheAddress <= N_CACHE_WORDS ){
         ++n_cache_memory_hits;
-        return cache[N_MAIN_MEMORY_WORDS - address];
+        return cache[cacheAddress];
     }
     else {
         ++n_cache_memory_misses;
@@ -112,18 +117,19 @@ AWORD read_memory(int address)
 
 void write_memory(AWORD address, AWORD value)
 {   
-    if( (N_MAIN_MEMORY_WORDS - address) <= N_CACHE_WORDS ){
-        ++n_cache_memory_hits;
-        cache[N_MAIN_MEMORY_WORDS - address] = value;
+// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
+    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+//    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
+
+    if( cacheAddress <= N_CACHE_WORDS ){
+        cache[cacheAddress] = value;
         main_memory[address] = value;
     }
     else{
         //not sure if we need cache misses in write memory
-        ++n_cache_memory_misses;
         ++n_main_memory_writes;
         main_memory[address] = value;
     }
-    
 }
 
 //  -------------------------------------------------------------------
@@ -242,10 +248,9 @@ int execute_stackmachine(void)
         ++PC;
 
 // maybe put off set values into cache?
-        IWORD offset = read_memory(PC);
+        IWORD nextInstruction = read_memory(PC);
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    
         printArray(PC, size);
 
 // PRINTS REGISTERS
@@ -299,7 +304,7 @@ int execute_stackmachine(void)
                 --SP;
                 write_memory(SP, FP);
                 FP = SP;
-                PC = read_memory(PC);
+                PC = nextInstruction;
                 break;
 
             case I_RETURN:
@@ -313,23 +318,32 @@ int execute_stackmachine(void)
                 PC = read_memory(FP + 1);
 
             // calculated return value
-                write_memory(FP + offset, valueReturned);
+                write_memory(FP + nextInstruction, valueReturned);
 
             // SP reset to tos
-                SP = FP + offset;
+                SP = FP + nextInstruction;
 
             //FP reset
                 FP = read_memory(FP);
                 break;
 
             case I_JMP:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered JMP\n");
+                PC = read_memory(PC);
                 break;
 
             case I_JEQ:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered JEQ\n");
+                IWORD popJEQ = read_memory(SP);
+                --SP;
+                if(popJEQ == 0){
+                    PC = nextInstruction;
+                }
+                else{
+                    ++PC;
+                }
                 break;
 
             case I_PRINTI:
@@ -350,32 +364,39 @@ int execute_stackmachine(void)
                 break;
 
             case I_PUSHA:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered PUSHA\n");
+                --SP;
+                IWORD addressOfPush = read_memory(PC);
+                pushc(addressOfPush, SP);
+                ++PC;
                 break;
 
             case I_PUSHR:
             // TODO CHECK CORRECTNESS
                 printf("Entered PUSHR\n");
-                ++PC;
-                IWORD temp = read_memory(FP + offset);
+                IWORD temp = read_memory(FP + nextInstruction);
                 --SP;
                 write_memory(SP, temp);
+                ++PC;
                 break;
 
             case I_POPA:
-            // TODO
+            // TODO CHECK CORRECTNESS
                 printf("Entered POPA\n");
+                IWORD addressOfPop = nextInstruction;
+                IWORD popA = read_memory(SP);
+                write_memory(addressOfPop, popA);
+                ++PC;
                 break;
             
             case I_POPR:
             // TODO CHECK CORRECTNESS
                 printf("Entered POPR\n");
+                IWORD popR = read_memory(SP);
+                write_memory(FP + nextInstruction, popR);
+                SP = FP + nextInstruction;
                 ++PC;
-                IWORD pop = read_memory(SP);
-
-                write_memory(FP + offset, pop);
-                SP = FP + offset;
                 break;
         }
     }
@@ -389,39 +410,40 @@ int execute_stackmachine(void)
 void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
+    memset(cache, 0, sizeof cache);
+
+// read in buffer
     AWORD buffer[N_MAIN_MEMORY_WORDS];
     
 
 //  READ CONTENTS OF coolexe FILE
     FILE    *fp_in = fopen(filename, "rb");
 
-    // Checks file was opened successfully
+// Checks file was opened successfully
     if(fp_in == NULL) {
         printf( "cannot open dictionary '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    // Finds the size or count of instructions in the exe file
+// Finds the size or count of instructions in the exe file
     fseek(fp_in, 0, SEEK_END);
 
-    // ftell returns single bytes
-    // size is actually half since each word is 2 bytes 
+// ftell returns single bytes
+// size is actually half since each word is 2 bytes 
     size = ftell(fp_in) / 2;
 
-    // rewind file pointer back to the beginning of file
+// rewind file pointer back to the beginning of file
     rewind(fp_in);
 
-    // read in exe file
+// read in exe file
     fread(buffer, sizeof(buffer), 1, fp_in);
-    // don't forget to close the file
+// don't forget to close the file
     fclose(fp_in);
 
-    // write the contents to memory
+// write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
         write_memory(i, buffer[i]);
     }
-    // reset cache misses from initial read of file
-    n_cache_memory_misses = 0;
 }
 
 //  -------------------------------------------------------------------
@@ -438,13 +460,13 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/fpexample.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/globalExtra.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
     report_statistics();
 
-    printf("Returned result: %i \n", result);
+    printf("my calculated result: %i \n", result);
 
     return result;          // or  exit(result);
 }
