@@ -1,8 +1,13 @@
-int a = 100;
-int b = 50;
-int c = 20;
+int global = 100;
+
+int myfunc(int a)
+{   
+    int result = global + a;
+    return result;
+}
 
 int main(void)
-{
-    return a + 30;
+{   
+    int result = myfunc(50);
+    return result;
 }
