@@ -28,6 +28,10 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 // THE CACHE
 AWORD                       cache[N_CACHE_WORDS];
 
+// SINGLE BYTE FOR CHECKING IF CACHE IS DIRTY OR CLEAN
+// -1 = NOT USED, 0 = CLEAN, 1 = DIRTY
+int8_t                     is_clean[N_CACHE_WORDS];
+
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
@@ -190,6 +194,15 @@ void printCache()
     printf("\n");
 }
 
+void printis_clean()
+{   
+    printf("Current is_clean :\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", is_clean[i]);
+    }
+    printf("\n");
+}
+
 void pushc(int PC, int SP)
 {
     IWORD temp;
@@ -265,6 +278,7 @@ int execute_stackmachine(void)
         printf("FP Value: %i\n", FP);
 //        printFrame(FP);
         printCache();
+        printis_clean();
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -415,7 +429,8 @@ int execute_stackmachine(void)
 void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
-    memset(cache, 0, sizeof cache);
+    memset(cache, 0, sizeof cache);               //  clear cache
+    memset(is_clean, -1, sizeof is_clean);         //  clear is_clean 
 
 // read in buffer
     AWORD buffer[N_MAIN_MEMORY_WORDS];
@@ -452,6 +467,7 @@ void read_coolexe_file(char filename[])
 
 // reset counter for wrtining to memory
     n_cache_memory_misses = 0;
+    n_main_memory_writes = 0;
 }
 
 //  -------------------------------------------------------------------
@@ -468,7 +484,7 @@ int main(int argc, char *argv[])
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/fpexample.coolexe");
+    read_coolexe_file("Coolexe/ifelse.coolexe");
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
