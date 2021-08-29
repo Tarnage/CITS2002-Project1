@@ -117,27 +117,30 @@ void report_statistics(void)
 AWORD read_memory(int address)
 {   
 // The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
 
 // currently counting all reads including cache reads
     ++n_main_memory_reads;
-
+/*
     if( cacheAddress <= N_CACHE_WORDS ){
         return cache[cacheAddress];
     }
     else {
         return main_memory[address];
     }
+*/
+    return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
 {   
 // The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
 //    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
 // TODO how will main memory get the data from cache
 // check for dirty bits and clean bits
     ++n_main_memory_writes;
+/*
     if( cacheAddress <= N_CACHE_WORDS ){
         // if cache is dirty write contents to main memory
 
@@ -154,6 +157,8 @@ void write_memory(AWORD address, AWORD value)
         
         main_memory[address] = value;
     }
+*/
+    main_memory[address] = value;
 }
 
 //  -------------------------------------------------------------------
@@ -235,7 +240,7 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-//        printArray(PC, size);
+        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("SP Value: %i\n", SP);
@@ -244,6 +249,7 @@ int execute_stackmachine(void)
 //        printFrame(FP);
 //        printCache();
 //        printis_clean();
+        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -285,7 +291,7 @@ int execute_stackmachine(void)
                 ++m_stack_depth;
                 --SP;
                 write_memory(SP, PC + 1);
-                
+
             // push FP address to TOS
                 ++m_stack_depth;
                 --SP;
@@ -302,6 +308,7 @@ int execute_stackmachine(void)
             //TODO CHECK
             // currently holds the off set
                 instruction = read_memory(PC);
+
             // PC goes back to the following instruction that called current function
                 PC = read_memory(FP + 1);
             
@@ -316,7 +323,7 @@ int execute_stackmachine(void)
                 break;
 
             case I_JMP:
-            // TODO CHECK
+            // TODO CHECK CORRECTNESS
             //    printf("Entered JMP\n");
                 PC = read_memory(PC);
                 break;
@@ -324,9 +331,14 @@ int execute_stackmachine(void)
             case I_JEQ:
             // TODO CHECK CORRECTNESS
             //    printf("Entered JEQ\n");
-                --SP;
-                if( read_memory(SP) == 0 ) PC = read_memory(PC);
-                else ++PC;
+                --m_stack_depth;
+                if( read_memory(SP) == 0 ){
+                    PC = read_memory(PC);
+                } 
+                else{
+                    ++PC;
+                } 
+                ++SP;
                 break;
 
             case I_PRINTI:
@@ -364,7 +376,7 @@ int execute_stackmachine(void)
 
             case I_POPA:
             // TODO CHECK
-                write_memory( SP, read_memory( read_memory(PC) ) );
+                write_memory( read_memory(PC), read_memory(SP) );
                 ++SP;
                 ++PC;
                 break;
@@ -443,7 +455,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/globals.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/ifelse.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
