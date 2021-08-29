@@ -255,9 +255,6 @@ int execute_stackmachine(void)
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
     int FP      = 0;                    // frame pointer
-
-//  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
-    //FP = FP + 0;
     
     while(true) {
 
@@ -266,7 +263,7 @@ int execute_stackmachine(void)
         printf("PC Value: %i\n", PC);
         ++PC;
 
-// maybe put off set values into cache?
+// FETCH THE FOLLOWING INSTRUCTION OF CURRENT INSTRUCTION
         IWORD nextInstruction = read_memory(PC);
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
@@ -318,12 +315,15 @@ int execute_stackmachine(void)
             case I_CALL:
             //TODO CHECK CORRECTNESS
                 printf("Entered CALL\n");
-            //saved return address
+            // push return address to TOS
                 --SP;
                 write_memory(SP, PC + 1);
+            // push FP address to TOS
                 --SP;
                 write_memory(SP, FP);
+            // set FP 
                 FP = SP;
+            // start execution of next function
                 PC = nextInstruction;
                 break;
 
