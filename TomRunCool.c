@@ -280,16 +280,20 @@ int execute_stackmachine(void)
             //TODO CHECK
                 ++n_func_calls;
                 ++m_func_call_depth;
+
             // push return address to TOS
                 ++m_stack_depth;
                 --SP;
                 write_memory(SP, PC + 1);
+                
             // push FP address to TOS
                 ++m_stack_depth;
                 --SP;
                 write_memory(SP, FP);
+
             // set FP 
                 FP = SP;
+
             // start execution of next function
                 PC = read_memory(PC);
                 break;
@@ -437,8 +441,10 @@ int main(int argc, char *argv[])
 
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
+
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
     read_coolexe_file("Coolexe/globals.coolexe");
+
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
