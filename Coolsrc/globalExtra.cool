@@ -1,0 +1,13 @@
+int global = 100;
+
+int myfunc(int a)
+{   
+    int result = global + a;
+    return result;
+}
+
+int main(void)
+{   
+    int result = myfunc(50);
+    return result;
+}

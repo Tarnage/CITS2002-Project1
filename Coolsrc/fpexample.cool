@@ -1,0 +1,12 @@
+int myfunc(int a, int b)
+{
+    int c = 4;
+    int d;
+    int e = 9;
+    return c + d + e;
+}
+
+int main(void)
+{
+    myfunc(8, 6);
+}

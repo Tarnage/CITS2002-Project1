@@ -1,0 +1,7 @@
+int main(void)
+{
+    print "result is: "; print 69;
+    print "\n";
+
+    return 0;
+}

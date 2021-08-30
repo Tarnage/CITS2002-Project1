@@ -1,0 +1,9 @@
+int main(void)
+{   
+    if(3){
+        return 3;
+    }
+    if(0){
+        return 0;
+    }
+}

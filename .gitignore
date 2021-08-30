@@ -7,3 +7,6 @@ build/Debug/add.o
 build/Debug/runcool.o
 build/Debug/TomRunCool.o
 TomRunCool.dSYM/Contents/Info.plist
+.vscode/tasks.json
+test
+TomRunCool.exe

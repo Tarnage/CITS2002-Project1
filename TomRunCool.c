@@ -28,6 +28,10 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 // THE CACHE
 AWORD                       cache[N_CACHE_WORDS];
 
+// SINGLE BYTE FOR CHECKING IF CACHE IS DIRTY OR CLEAN
+// -1 = NOT USED, 0 = CLEAN, 1 = DIRTY
+int8_t                     is_clean[N_CACHE_WORDS];
+
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
@@ -78,6 +82,10 @@ int n_main_memory_reads     = 0;
 int n_main_memory_writes    = 0;
 int n_cache_memory_hits     = 0;
 int n_cache_memory_misses   = 0;
+int n_instructions          = 0;
+int n_func_calls            = 0;
+int m_func_call_depth       = 0;
+int m_stack_depth           = 0;
 
 void report_statistics(void)
 {
@@ -85,6 +93,13 @@ void report_statistics(void)
     printf("@number-of-main-memory-writes\t%i\n",   n_main_memory_writes);
     printf("@number-of-cache-memory-hits\t%i\n",    n_cache_memory_hits);
     printf("@number-of-cache-memory-misses\t%i\n",  n_cache_memory_misses);
+    printf("@\n");
+    // FOLLOWIG LINES NOT NEEDED FOR FINAL PROJECT
+    printf("@number-of-instructions \t%i\n",         n_instructions);        
+    printf("@number-of-function-calls \t%i\n",       n_func_calls);      
+    printf("@maximum-function-call-depth\t%i\n",     m_func_call_depth);   
+    printf("@maximum-stack-depth \t\t%i\n",          m_stack_depth);
+    printf("@\n");           
 }
 
 //  -------------------------------------------------------------------
@@ -95,15 +110,54 @@ void report_statistics(void)
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
 
+// TODO Implement write back cache
+// STILL NEED TO WORK OUT THE CACHE HIT/MISS METRICS
+// implement dirty clean tags
+
 AWORD read_memory(int address)
-{
+{   
+// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
+//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+
+// currently counting all reads including cache reads
     ++n_main_memory_reads;
+/*
+    if( cacheAddress <= N_CACHE_WORDS ){
+        return cache[cacheAddress];
+    }
+    else {
+        return main_memory[address];
+    }
+*/
     return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
 {   
+// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
+//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+//    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
+// TODO how will main memory get the data from cache
+// check for dirty bits and clean bits
     ++n_main_memory_writes;
+/*
+    if( cacheAddress <= N_CACHE_WORDS ){
+        // if cache is dirty write contents to main memory
+
+        //++n_cache_memory_hits;
+        // data will be stored in cache
+        cache[cacheAddress] = value;
+        // the address of the data will be stored in main memory
+        //main_memory[address] = cacheAddress;
+        main_memory[address] = value;
+    }
+    else{
+        //not sure if we need cache misses in write memory
+        //++n_cache_memory_misses;
+        
+        main_memory[address] = value;
+    }
+*/
     main_memory[address] = value;
 }
 
@@ -150,49 +204,23 @@ void printFrame(int FP)
     printf("\n");
 }
 
-void pushc(int PC, int SP)
-{
-    IWORD temp;
-    temp = read_memory(PC);
-    write_memory(SP, temp);
+void printCache()
+{   
+    printf("Current Cache :\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", cache[i]);
+    }
+    printf("\n");
 }
 
-void add(int SP)
-{
-    IWORD temp1, temp2;
-    temp1 = read_memory(SP);
-    ++SP;
-    temp2 = read_memory(SP);
-    write_memory(SP, temp1 + temp2);
+void printis_clean()
+{   
+    printf("Current is_clean :\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", is_clean[i]);
+    }
+    printf("\n");
 }
-
-void multi(int SP)
-{
-    IWORD temp1, temp2;
-    temp1 = read_memory(SP);
-    ++SP;
-    temp2 = read_memory(SP);
-    write_memory(SP, temp1 * temp2);
-}
-
-void sub(int SP)
-{
-    IWORD temp1, temp2;
-    temp1 = read_memory(SP);
-    ++SP;
-    temp2 = read_memory(SP);
-    write_memory(SP, temp2 - temp1);
-}
-
-void divide(int SP)
-{
-    IWORD temp1, temp2;
-    temp1 = read_memory(SP);
-    ++SP;
-    temp2 = read_memory(SP);
-    write_memory(SP, temp2 / temp1);
-}
-
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -202,22 +230,26 @@ int execute_stackmachine(void)
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
     int FP      = 0;                    // frame pointer
-
-//  REMOVE THE FOLLOWING LINE ONCE YOU ACTUALLY NEED TO USE FP
-    //FP = FP + 0;
     
     while(true) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
+//        printf("PC Value: %i\n", PC);
         ++PC;
-        
+        ++n_instructions;
+
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-    printArray(PC, size);
+        printArray(PC, size);
 
 // PRINTS REGISTERS
-//        printStack(SP);
+//        printf("SP Value: %i\n", SP);
+        printStack(SP);
+//        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
+//        printCache();
+//        printis_clean();
+        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -227,99 +259,133 @@ int execute_stackmachine(void)
         switch(instruction)
         {
             case I_NOP:
-                printf("Entered NOP\n");
+            // NO OPERATION, CONTINUES TO NEXT INSTRUCTION
                 break;
 
             case I_ADD:
-                printf("Entered ADD\n");
-                add(SP);
                 ++SP;
+                write_memory( SP, read_memory(SP - 1) + read_memory(SP) );
                 break;
 
             case I_SUB:
-                printf("Entered SUB\n");
-                sub(SP);
                 ++SP;
+                write_memory( SP, read_memory(SP) - read_memory(SP - 1) );
                 break;
             
             case I_MULT:
-                printf("Entered MULT\n");
-                multi(SP);
                 ++SP;
+                write_memory( SP, read_memory(SP - 1) * read_memory(SP) );
                 break;
 
             case I_DIV:
-                printf("Entered DIV\n");
-                divide(SP);
+                write_memory( SP, read_memory(SP - 1) / read_memory(SP) );
                 ++SP;
                 break;
 
             case I_CALL:
-                printf("Entered CALL\n");
+            //TODO CHECK
+                ++n_func_calls;
+                ++m_func_call_depth;
+
+            // push return address to TOS
+                ++m_stack_depth;
+                --SP;
+                write_memory(SP, PC + 1);
+
+            // push FP address to TOS
+                ++m_stack_depth;
                 --SP;
                 write_memory(SP, FP);
-                --SP;
-                write_memory(SP + 1, PC + 1);
+
+            // set FP 
                 FP = SP;
+
+            // start execution of next function
                 PC = read_memory(PC);
                 break;
 
             case I_RETURN:
-                printf("Entered RETURN\n");
-                IWORD valueReturned = read_memory(SP);
-                ++SP;
-                FP = read_memory(SP);
-                ++SP;
-                PC = read_memory(SP);
-                ++SP;
-                write_memory(SP, valueReturned);
+            //TODO CHECK
+            // currently holds the off set
+                instruction = read_memory(PC);
+
+            // PC goes back to the following instruction that called current function
+                PC = read_memory(FP + 1);
+            
+            // calculated return value placed in the FP offset
+                write_memory( FP + instruction, read_memory(SP) );
+
+            // SP reset to actual TOS
+                SP = FP + instruction;
+
+            //FP reset
+                FP = read_memory(FP);
                 break;
 
             case I_JMP:
-            // TODO
-                printf("Entered JMP\n");
+            // TODO CHECK CORRECTNESS
+            //    printf("Entered JMP\n");
+                PC = read_memory(PC);
                 break;
 
             case I_JEQ:
-            // TODO
-                printf("Entered JEQ\n");
+            // TODO CHECK CORRECTNESS
+            //    printf("Entered JEQ\n");
+                --m_stack_depth;
+                if( read_memory(SP) == 0 ){
+                    PC = read_memory(PC);
+                } 
+                else{
+                    ++PC;
+                } 
+                ++SP;
                 break;
 
             case I_PRINTI:
-            // TODO
-                printf("Entered PRINTI\n");
+            // TODO IMPLEMENT
+            //    printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
-            // TODO
-                printf("Entered PRINTI\n");
+            // TODO IMPLEMENT
+            //    printf("Entered PRINTI\n");
                 break;
             
             case I_PUSHC:
-                printf("Entered PUSHC\n");
+                ++m_stack_depth;
                 --SP;
-                pushc(PC, SP);
+                write_memory( SP, read_memory(PC) );
                 ++PC;
                 break;
 
             case I_PUSHA:
-            // TODO
-                printf("Entered PUSHA\n");
+            // TODO CHECK
+                ++m_stack_depth;
+                --SP;
+                write_memory( SP, read_memory( read_memory(PC) ) );
+                ++PC;
                 break;
 
             case I_PUSHR:
-            // TODO
-                printf("Entered PUSHR\n");
+            // TODO CHECK
+                ++m_stack_depth;
+                --SP;
+                write_memory( SP, read_memory( FP + read_memory(PC) ) );
+                ++PC;
                 break;
 
             case I_POPA:
-            // TODO
-                printf("Entered POPA\n");
+            // TODO CHECK
+                write_memory( read_memory(PC), read_memory(SP) );
+                ++SP;
+                ++PC;
                 break;
             
             case I_POPR:
-            // TODO
-                printf("Entered POPR\n");
+            // TODO CHECK
+                write_memory( FP + read_memory(PC), read_memory(SP) );
+                ++SP;
+                ++PC;
                 break;
         }
     }
@@ -333,37 +399,45 @@ int execute_stackmachine(void)
 void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
+    memset(cache, 0, sizeof cache);               //  clear cache
+    memset(is_clean, -1, sizeof is_clean);        //  clear is_clean 
+
+// read in buffer
     AWORD buffer[N_MAIN_MEMORY_WORDS];
     
 
 //  READ CONTENTS OF coolexe FILE
     FILE    *fp_in = fopen(filename, "rb");
 
-    // Checks file was opened successfully
+// Checks file was opened successfully
     if(fp_in == NULL) {
         printf( "cannot open dictionary '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    // Finds the size or count of instructions in the exe file
+// Finds the size or count of instructions in the exe file
     fseek(fp_in, 0, SEEK_END);
 
-    // ftell returns single bytes
-    // size is actually half since each word is 2 bytes 
+// ftell returns single bytes
+// size is actually half since each word is 2 bytes 
     size = ftell(fp_in) / 2;
 
-    // rewind file pointer back to the beginning of file
+// rewind file pointer back to the beginning of file
     rewind(fp_in);
 
-    // read in exe file
+// read in exe file
     fread(buffer, sizeof(buffer), 1, fp_in);
-    // don't forget to close the file
+// don't forget to close the file
     fclose(fp_in);
 
-    // write the contents to memory
+// write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
         write_memory(i, buffer[i]);
     }
+
+// reset counter for wrtining to memory
+    n_cache_memory_misses = 0;
+    n_main_memory_writes = 0;
 }
 
 //  -------------------------------------------------------------------
@@ -379,14 +453,16 @@ int main(int argc, char *argv[])
 
 //  READ THE PROVIDED coolexe FILE INTO THE EMULATED MEMORY
 //    read_coolexe_file(argv[1]);
+
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/atimesb.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/if(1).coolexe");
+
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
     report_statistics();
 
-    printf("Returned result: %i \n", result);
+    printf("my calculated result:\t\t%i\n", result);
 
     return result;          // or  exit(result);
 }
