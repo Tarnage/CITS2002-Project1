@@ -1,0 +1,9 @@
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
+TomRunCool
+build/Debug/add.o
+build/Debug/runcool.o
+build/Debug/TomRunCool.o
+TomRunCool.dSYM/Contents/Info.plist
