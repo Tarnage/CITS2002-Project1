@@ -240,7 +240,7 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-        printArray(PC, size);
+//        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("SP Value: %i\n", SP);
@@ -278,8 +278,8 @@ int execute_stackmachine(void)
                 break;
 
             case I_DIV:
-                write_memory( SP, read_memory(SP - 1) / read_memory(SP) );
                 ++SP;
+                write_memory( SP, read_memory(SP) / read_memory(SP - 1) );
                 break;
 
             case I_CALL:
@@ -332,12 +332,8 @@ int execute_stackmachine(void)
             // TODO CHECK CORRECTNESS
             //    printf("Entered JEQ\n");
                 --m_stack_depth;
-                if( read_memory(SP) == 0 ){
-                    PC = read_memory(PC);
-                } 
-                else{
-                    ++PC;
-                } 
+                if( read_memory(SP) == 0 ) PC = read_memory(PC);
+                else ++PC;
                 ++SP;
                 break;
 
@@ -455,7 +451,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/if(1).coolexe");
+    read_coolexe_file("Coolexe/adivb.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
