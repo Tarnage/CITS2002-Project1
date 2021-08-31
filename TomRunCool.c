@@ -239,7 +239,7 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-//        printArray(PC, size);
+        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("Current Instruction being executed: %i\n", instruction);
