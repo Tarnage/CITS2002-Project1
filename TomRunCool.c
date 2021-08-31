@@ -235,7 +235,6 @@ int execute_stackmachine(void)
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
-//        printf("PC Value: %i\n", PC);
         ++PC;
         ++n_instructions;
 
@@ -243,6 +242,8 @@ int execute_stackmachine(void)
 //        printArray(PC, size);
 
 // PRINTS REGISTERS
+//        printf("Current Instruction being executed: %i\n", instruction);
+//        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
         printStack(SP);
 //        printf("FP Value: %i\n", FP);
