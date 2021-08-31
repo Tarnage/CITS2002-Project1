@@ -1,7 +1,6 @@
 int main(void)
 {
-    print "result is: "; print 69;
-    print "\n";
+    print "result is:";
 
     return 0;
 }
