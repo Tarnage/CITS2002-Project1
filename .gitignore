@@ -10,3 +10,6 @@ TomRunCool.dSYM/Contents/Info.plist
 .vscode/tasks.json
 test
 TomRunCool.exe
+HelperFunctions/cache.exe
+HelperFunctions/printBinary.exe
+troyruncool.exe
