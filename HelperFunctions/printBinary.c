@@ -17,11 +17,17 @@ int main(void)
 {
     bin(7);
     printf("\n");
+    printf("address for 7: %i\n", 7 % 32);
     bin(4);
     printf("\n");
+    printf("address for 4: %i\n", 4 % 32);
     bin(1);
     printf("\n");
-    bin(65535);
+    printf("address for 1: %i\n", 1 % 32);
+    bin(986);
     printf("\n");
-    printf("%i", 65535 % 32);
+    printf("address for 986: %i\n", 986 % 32);
+    bin(65533);
+    printf("\n");
+    printf("address for 65533:%i\n", 65533 % 32);
 }
