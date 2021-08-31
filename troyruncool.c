@@ -339,11 +339,42 @@ int execute_stackmachine(void)
 
             case I_PRINTI:
             // TODO IMPLEMENT
+                // AWORD prtInt = read_memory(SP--);
+                // printf("%i", prtInt);
             //    printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
             // TODO IMPLEMENT
+                //Read get address where store the PC value
+                PC = read_memory(PC);
+
+                while(true){
+                    //read value from PC 
+                    AWORD val = read_memory(PC);
+                    ++PC;
+                    //Each 16-bits integer contain two char
+                    //first 8-bits is a
+                    //second 8-bit is b
+                    char a = val%256;
+                    char b = val/256;
+                    if(a != '\0'){
+                        printf("%c", a);
+                    }
+                    else{
+                        break;
+                    }
+                    if(b != '\0'){
+                        printf("%c", b);
+                    }
+                    else{
+                        break;
+                    }
+                }
+                
+                
+
+                //Increment the until the NULL byte
             //    printf("Entered PRINTI\n");
                 break;
             
@@ -451,7 +482,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/adivb.coolexe");
+    read_coolexe_file("ackermann/print.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
