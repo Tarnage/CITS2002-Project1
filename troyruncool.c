@@ -340,9 +340,9 @@ int execute_stackmachine(void)
             case I_PRINTI:
             // TODO IMPLEMENT
                 // Remember the stack grows down
-                // which means when you pop or delete something off the stack it goes up.
-                // for example you code below SP = 0 0 0 0 0 3 2 1 imagine and SP is pointing at 3
-                // when you SP-- it goes <- which is pointing at 0.  
+                // which means when you pop or delete something off the stack SP goes up.
+                // for example your code below lets say the stack = 0 0 0 0 0 3 2 1  and SP is pointing at 3 thats index 65333
+                // when you SP-- it goes <- which is index 65332  which is pointing at 0.
                 // AWORD prtInt = read_memory(SP--);
                 // printf("%i", prtInt);
             //    printf("Entered PRINTI\n");
