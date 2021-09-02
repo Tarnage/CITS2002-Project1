@@ -239,18 +239,18 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-        printArray(PC, size);
+//        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("Current Instruction being executed: %i\n", instruction);
 //        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
-        printStack(SP);
+//        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
 //        printCache();
 //        printis_clean();
-        printf("current stack depth %i\n", m_stack_depth);
+//        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
@@ -341,11 +341,17 @@ int execute_stackmachine(void)
             case I_PRINTI:
             // TODO IMPLEMENT
             //    printf("Entered PRINTI\n");
+            // insruction holds TOS
+                instruction = read_memory(SP);
+                ++SP;
+                printf("%i", instruction);
                 break;
 
             case I_PRINTS:
             // TODO IMPLEMENT
             //    printf("Entered PRINTI\n");
+            // instruction holds the address of the next instruction when print is finished
+                instruction = PC + 1;
                 PC = read_memory(PC);
 
                 while(true){
@@ -359,10 +365,16 @@ int execute_stackmachine(void)
                     char b = val / 256;
 
                     if(a != '\0') printf("%c", a);
-                    else break;
+                    else {
+                        PC = instruction;
+                        break;
+                    }
                     
                     if(b != '\0') printf("%c", b);
-                    else break;
+                    else {
+                        PC = instruction;
+                        break;
+                    }
                 }
                 
                 break;
@@ -377,16 +389,18 @@ int execute_stackmachine(void)
             case I_PUSHA:
             // TODO CHECK
                 ++m_stack_depth;
+                instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory( read_memory(PC) ) );
+                write_memory( SP, read_memory(instruction) );
                 ++PC;
                 break;
 
             case I_PUSHR:
             // TODO CHECK
                 ++m_stack_depth;
+                instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory( FP + read_memory(PC) ) );
+                write_memory( SP, read_memory(FP + instruction) );
                 ++PC;
                 break;
 
@@ -471,7 +485,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/adivb.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/ackermann.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
