@@ -1,0 +1,6 @@
+int main(void)
+{
+    print 123456;
+
+    return 0;
+}
