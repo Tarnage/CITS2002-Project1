@@ -255,7 +255,7 @@ int execute_stackmachine(void)
             printf("Entered HALT\n");
             break;
         }
-        IWORD prtInt;
+        
         switch(instruction)
         {
             case I_NOP:
@@ -339,15 +339,16 @@ int execute_stackmachine(void)
 
             case I_PRINTI:
             // TODO IMPLEMENT
-                prtInt = read_memory(SP);
+                instruction = read_memory(SP);
                 ++SP;
-                printf("%i", prtInt);
+                printf("%i", instruction);
             //    printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
             // TODO IMPLEMENT
                 //Read get address where store the PC value
+                instruction = PC + 1;
                 PC = read_memory(PC);
 
                 while(true){
@@ -363,12 +364,14 @@ int execute_stackmachine(void)
                         printf("%c", a);
                     }
                     else{
+                        PC = instruction;
                         break;
                     }
                     if(b != '\0'){
                         printf("%c", b);
                     }
                     else{
+                        PC = instruction;
                         break;
                     }
                 }
@@ -397,8 +400,9 @@ int execute_stackmachine(void)
             case I_PUSHR:
             // TODO CHECK
                 ++m_stack_depth;
+                instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory( FP + read_memory(PC) ) );
+                write_memory( SP, read_memory(FP + instruction) );
                 ++PC;
                 break;
 
