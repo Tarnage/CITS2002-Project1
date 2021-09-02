@@ -346,6 +346,25 @@ int execute_stackmachine(void)
             case I_PRINTS:
             // TODO IMPLEMENT
             //    printf("Entered PRINTI\n");
+                PC = read_memory(PC);
+
+                while(true){
+                    //read value from PC 
+                    AWORD val = read_memory(PC);
+                    ++PC;
+                    //Each 16-bits integer contain two char
+                    //first 8-bits is a
+                    //second 8-bit is b
+                    char a = val % 256;
+                    char b = val / 256;
+
+                    if(a != '\0') printf("%c", a);
+                    else break;
+                    
+                    if(b != '\0') printf("%c", b);
+                    else break;
+                }
+                
                 break;
             
             case I_PUSHC:
