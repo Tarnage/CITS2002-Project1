@@ -255,7 +255,7 @@ int execute_stackmachine(void)
             printf("Entered HALT\n");
             break;
         }
-
+        IWORD prtInt;
         switch(instruction)
         {
             case I_NOP:
@@ -339,12 +339,9 @@ int execute_stackmachine(void)
 
             case I_PRINTI:
             // TODO IMPLEMENT
-                // Remember the stack grows down
-                // which means when you pop or delete something off the stack SP goes up.
-                // for example your code below lets say the stack = 0 0 0 0 0 3 2 1  and SP is pointing at 3 thats index 65333
-                // when you SP-- it goes <- which is index 65332  which is pointing at 0.
-                // AWORD prtInt = read_memory(SP--);
-                // printf("%i", prtInt);
+                prtInt = read_memory(SP);
+                ++SP;
+                printf("%i", prtInt);
             //    printf("Entered PRINTI\n");
                 break;
 
@@ -486,7 +483,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("ackermann/print.coolexe");
+    read_coolexe_file("coolexe/print.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
