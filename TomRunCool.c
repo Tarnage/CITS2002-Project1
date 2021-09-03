@@ -69,24 +69,21 @@ const char *INSTRUCTION_name[] = {
 
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
 
-typedef struct
+struct
 {   
     //Check if current line is occupied
     uint8_t       valid;
+    //TODO
     //Check if line is dirty or clean 
     //if clean it does not need to be written to memeory
     //if dirty we need to write to memory
     uint8_t     dirtyBit;
     // actual data
-
     int         tag;
-
     AWORD       data;
 
-} CACHE;
+} cache[N_CACHE_WORDS];
 
-// THE CACHE
-CACHE                       cache[N_CACHE_WORDS];
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
 int n_main_memory_reads     = 0;
@@ -445,14 +442,6 @@ void read_coolexe_file(char filename[])
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
         main_memory[i] = buffer[i];
-    }
-
-// fill cache with empty structs
-    for(int i = 0; i < 32; ++i){
-        CACHE line;
-        line.valid = 0;
-        line.tag = -1;
-        cache[i] = line;
     }
 }
 
