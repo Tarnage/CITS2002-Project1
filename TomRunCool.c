@@ -25,13 +25,6 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 //  THE SMALL-BUT-FAST CACHE HAS 32 WORDS OF MEMORY
 #define N_CACHE_WORDS       32
 
-// THE CACHE
-AWORD                       cache[N_CACHE_WORDS];
-
-// SINGLE BYTE FOR CHECKING IF CACHE IS DIRTY OR CLEAN
-// -1 = NOT USED, 0 = CLEAN, 1 = DIRTY
-int8_t                     is_clean[N_CACHE_WORDS];
-
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
@@ -76,12 +69,31 @@ const char *INSTRUCTION_name[] = {
 
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
 
+typedef struct
+{   
+    //Check if current line is occupied
+    uint8_t       valid;
+    //Check if line is dirty or clean 
+    //if clean it does not need to be written to memeory
+    //if dirty we need to write to memory
+    uint8_t     dirtyBit;
+    // actual data
+
+    int         tag;
+
+    AWORD       data;
+
+} CACHE;
+
+// THE CACHE
+CACHE                       cache[N_CACHE_WORDS];
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
 int n_main_memory_reads     = 0;
 int n_main_memory_writes    = 0;
 int n_cache_memory_hits     = 0;
 int n_cache_memory_misses   = 0;
+
 int n_instructions          = 0;
 int n_func_calls            = 0;
 int m_func_call_depth       = 0;
@@ -110,55 +122,39 @@ void report_statistics(void)
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
 
-// TODO Implement write back cache
-// STILL NEED TO WORK OUT THE CACHE HIT/MISS METRICS
-// implement dirty clean tags
-
 AWORD read_memory(int address)
 {   
-// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+    int cacheAddress = address % 32;
 
-// currently counting all reads including cache reads
-    ++n_main_memory_reads;
-/*
-    if( cacheAddress <= N_CACHE_WORDS ){
-        return cache[cacheAddress];
+    if(cache[cacheAddress].valid == 0 || cache[cacheAddress].tag != address){
+        ++n_cache_memory_misses;
+        ++n_main_memory_reads;
+
+        cache[cacheAddress].data        = main_memory[address];
+        cache[cacheAddress].valid       = 1;
+        cache[cacheAddress].tag         = address;
+        cache[cacheAddress].dirtyBit    = 0;
+
+        return cache[cacheAddress].data;
     }
-    else {
-        return main_memory[address];
+    else{
+        ++n_cache_memory_hits;
+        return cache[cacheAddress].data;
     }
-*/
-    return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
 {   
-// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
-//    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
-// TODO how will main memory get the data from cache
-// check for dirty bits and clean bits
+    int cacheAddress = address % 32;
     ++n_main_memory_writes;
-/*
-    if( cacheAddress <= N_CACHE_WORDS ){
-        // if cache is dirty write contents to main memory
 
-        //++n_cache_memory_hits;
-        // data will be stored in cache
-        cache[cacheAddress] = value;
-        // the address of the data will be stored in main memory
-        //main_memory[address] = cacheAddress;
-        main_memory[address] = value;
-    }
-    else{
-        //not sure if we need cache misses in write memory
-        //++n_cache_memory_misses;
-        
-        main_memory[address] = value;
-    }
-*/
-    main_memory[address] = value;
+    main_memory[address]            = value;
+    cache[cacheAddress].data        = main_memory[address];
+    cache[cacheAddress].valid       = 1;
+    cache[cacheAddress].tag         = address;
+    cache[cacheAddress].dirtyBit    = 0;
+    
+    
 }
 
 //  -------------------------------------------------------------------
@@ -204,23 +200,6 @@ void printFrame(int FP)
     printf("\n");
 }
 
-void printCache()
-{   
-    printf("Current Cache :\n");
-    for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", cache[i]);
-    }
-    printf("\n");
-}
-
-void printis_clean()
-{   
-    printf("Current is_clean :\n");
-    for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", is_clean[i]);
-    }
-    printf("\n");
-}
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -434,7 +413,6 @@ void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
     memset(cache, 0, sizeof cache);               //  clear cache
-    memset(is_clean, -1, sizeof is_clean);        //  clear is_clean 
 
 // read in buffer
     AWORD buffer[N_MAIN_MEMORY_WORDS];
@@ -466,12 +444,16 @@ void read_coolexe_file(char filename[])
 
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
-        write_memory(i, buffer[i]);
+        main_memory[i] = buffer[i];
     }
 
-// reset counter for wrtining to memory
-    n_cache_memory_misses = 0;
-    n_main_memory_writes = 0;
+// fill cache with empty structs
+    for(int i = 0; i < 32; ++i){
+        CACHE line;
+        line.valid = 0;
+        line.tag = -1;
+        cache[i] = line;
+    }
 }
 
 //  -------------------------------------------------------------------
