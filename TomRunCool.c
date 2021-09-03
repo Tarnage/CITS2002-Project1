@@ -389,6 +389,7 @@ int execute_stackmachine(void)
             case I_PUSHA:
             // TODO CHECK
                 ++m_stack_depth;
+                // instruction holds the address of value to push
                 instruction = read_memory(PC);
                 --SP;
                 write_memory( SP, read_memory(instruction) );
@@ -398,6 +399,7 @@ int execute_stackmachine(void)
             case I_PUSHR:
             // TODO CHECK
                 ++m_stack_depth;
+            // instruction holds the offset
                 instruction = read_memory(PC);
                 --SP;
                 write_memory( SP, read_memory(FP + instruction) );
@@ -413,7 +415,9 @@ int execute_stackmachine(void)
             
             case I_POPR:
             // TODO CHECK
-                write_memory( FP + read_memory(PC), read_memory(SP) );
+            // instruction holds the offset
+                instruction = read_memory(PC);
+                write_memory( FP + instruction, read_memory(SP) );
                 ++SP;
                 ++PC;
                 break;
