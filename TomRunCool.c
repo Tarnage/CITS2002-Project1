@@ -73,14 +73,11 @@ struct
 {   
     //Check if current line is occupied
     uint8_t       valid;
-    //TODO
-    //Check if line is dirty or clean 
-    //if clean it does not need to be written to memeory
-    //if dirty we need to write to memory
-    uint8_t     dirtyBit;
+    //if dirty we need to write to memory, before we write over the line
+    uint8_t       dirtyBit;
     // actual data
-    int         tag;
-    AWORD       data;
+    int           tag;
+    AWORD         data;
 
 } cache[N_CACHE_WORDS];
 
@@ -124,13 +121,13 @@ AWORD read_memory(int address)
     int cacheAddress = address % 32;
 
     if(cache[cacheAddress].valid == 0 || cache[cacheAddress].tag != address){
+        //TODO impelemnt dirtybit
         if(cache[cacheAddress].dirtyBit == 1){
             ++n_main_memory_writes;
             main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
         }
-        ++n_cache_memory_misses;
         ++n_main_memory_reads;
-
+        ++n_cache_memory_misses;
         cache[cacheAddress].data        = main_memory[address];
         cache[cacheAddress].valid       = 1;
         cache[cacheAddress].tag         = address;
@@ -147,13 +144,18 @@ AWORD read_memory(int address)
 void write_memory(AWORD address, AWORD value)
 {   
     int cacheAddress = address % 32;
-    ++n_main_memory_writes;
+    //TODO add a dirty bit check or something 
+    if(cache[cacheAddress].dirtyBit == 1 && cache[cacheAddress].tag != address){
+        ++n_main_memory_writes;
+        main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
+    }
 
+    ++n_main_memory_writes;
     main_memory[address]            = value;
     cache[cacheAddress].data        = main_memory[address];
     cache[cacheAddress].valid       = 1;
     cache[cacheAddress].tag         = address;
-    cache[cacheAddress].dirtyBit    = 0;
+    cache[cacheAddress].dirtyBit    = 1;
     
     
 }
