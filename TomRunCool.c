@@ -124,6 +124,10 @@ AWORD read_memory(int address)
     int cacheAddress = address % 32;
 
     if(cache[cacheAddress].valid == 0 || cache[cacheAddress].tag != address){
+        if(cache[cacheAddress].dirtyBit == 1){
+            ++n_main_memory_writes;
+            main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
+        }
         ++n_cache_memory_misses;
         ++n_main_memory_reads;
 
@@ -197,6 +201,15 @@ void printFrame(int FP)
     printf("\n");
 }
 
+void printCache()
+{   
+    printf("Current Cache:\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", cache[i].data);
+    }
+    printf("\n");
+}
+
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -224,8 +237,7 @@ int execute_stackmachine(void)
 //        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
-//        printCache();
-//        printis_clean();
+        printCache();
 //        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
@@ -460,7 +472,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/ackermann.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/fpexample.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
