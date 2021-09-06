@@ -101,10 +101,10 @@ void report_statistics(void)
     printf("@number-of-cache-memory-misses\t%i\n",  n_cache_memory_misses);
     printf("@\n");
     // FOLLOWIG LINES NOT NEEDED FOR FINAL PROJECT
-    printf("@number-of-instructions \t%i\n",         n_instructions);        
-    printf("@number-of-function-calls \t%i\n",       n_func_calls);      
-    printf("@maximum-function-call-depth\t%i\n",     m_func_call_depth);   
-    printf("@maximum-stack-depth \t\t%i\n",          m_stack_depth);
+    printf("@number-of-instructions     \t%i\n",    n_instructions);        
+    printf("@number-of-function-calls   \t%i\n",    n_func_calls);      
+    printf("@maximum-function-call-depth\t%i\n",    m_func_call_depth);   
+    printf("@maximum-stack-depth        \t%i\n",    m_stack_depth);
     printf("@\n");           
 }
 
@@ -474,14 +474,14 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/fpexample.coolexe");
+    read_coolexe_file("Coolexe/fpexample.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
     report_statistics();
 
-    printf("my calculated result:\t\t%i\n", result);
+    printf("my calculated result:       \t%i\n", result);
 
     return result;          // or  exit(result);
 }
