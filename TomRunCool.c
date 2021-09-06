@@ -111,15 +111,24 @@ void report_statistics(void)
 //
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
+void printCache()
+{   
+    printf("Current Cache:\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", cache[i].data);
+    }
+    printf("\n");
+}
 
 AWORD read_memory(int address)
 {   
     int cacheAddress = address % N_CACHE_WORDS;
-
+    printCache();
     if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].dirtyBit != address){
         //TODO impelemnt dirtybit
         ++n_cache_memory_misses;
         ++n_main_memory_reads;
+        ++n_main_memory_writes;
         cache[cacheAddress].data = main_memory[address];
         cache[cacheAddress].dirtyBit = address;
 
@@ -133,11 +142,13 @@ AWORD read_memory(int address)
 
 void write_memory(AWORD address, AWORD value)
 {   
+    printCache();
+    
     int cacheAddress = address % N_CACHE_WORDS;
     //TODO add a dirty bit check or something 
     if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].dirtyBit != address){
         ++n_main_memory_writes;
-        main_memory[address] = cache[cacheAddress].data;
+        main_memory[cache[cacheAddress].dirtyBit] = cache[cacheAddress].data;
     }
     cache[cacheAddress].data        = value;
     cache[cacheAddress].dirtyBit    = address;
@@ -186,15 +197,6 @@ void printFrame(int FP)
     printf("\n");
 }
 
-void printCache()
-{   
-    printf("Current Cache:\n");
-    for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", cache[i].data);
-    }
-    printf("\n");
-}
-
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -219,10 +221,10 @@ int execute_stackmachine(void)
 //        printf("Current Instruction being executed: %i\n", instruction);
 //        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
-//        printStack(SP);
+        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
-        printCache();
+//        printCache();
 //        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
