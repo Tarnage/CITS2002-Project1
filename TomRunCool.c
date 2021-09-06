@@ -68,7 +68,7 @@ const char *INSTRUCTION_name[] = {
 };
 
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
-
+//TODO dont need valid, tag see https://secure.csse.uwa.edu.au/run/help2002?p=np&a=432
 struct
 {   
     //Check if current line is occupied
