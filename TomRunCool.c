@@ -77,7 +77,6 @@ struct
 
 } cache[N_CACHE_WORDS] = {
     1,
-    NULL
 };
 
 
@@ -119,10 +118,10 @@ AWORD read_memory(int address)
 {   
     int cacheAddress = address % N_CACHE_WORDS;
 
-    if(cache[cacheAddress].data == NULL || cache[cacheAddress].dirtyBit == 0){
+    if(cache[cacheAddress].dirtyBit == 1){
         //TODO impelemnt dirtybit
         cache[cacheAddress].data = main_memory[address];
-        cache[cacheAddress].dirtyBit = 0;
+        cache[cacheAddress].dirtyBit = 1;
         return cache[cacheAddress].data;
     }
     else{
@@ -138,7 +137,7 @@ void write_memory(AWORD address, AWORD value)
         main_memory[address] = cache[cacheAddress].data;
     }
     cache[cacheAddress].data        = value;
-    cache[cacheAddress].dirtyBit    = 1;
+    cache[cacheAddress].dirtyBit    = 0;
 }
 
 //  -------------------------------------------------------------------
