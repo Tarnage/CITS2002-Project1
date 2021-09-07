@@ -128,7 +128,7 @@ AWORD read_memory(int address)
         //TODO impelemnt dirtybit
         ++n_cache_memory_misses;
         ++n_main_memory_reads;
-        ++n_main_memory_writes;
+        //++n_main_memory_writes;
         cache[cacheAddress].data = main_memory[address];
         cache[cacheAddress].dirtyBit = address;
 
