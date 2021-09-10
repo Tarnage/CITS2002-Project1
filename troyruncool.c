@@ -25,13 +25,6 @@ AWORD                       main_memory[N_MAIN_MEMORY_WORDS];
 //  THE SMALL-BUT-FAST CACHE HAS 32 WORDS OF MEMORY
 #define N_CACHE_WORDS       32
 
-// THE CACHE
-AWORD                       cache[N_CACHE_WORDS];
-
-// SINGLE BYTE FOR CHECKING IF CACHE IS DIRTY OR CLEAN
-// -1 = NOT USED, 0 = CLEAN, 1 = DIRTY
-int8_t                     is_clean[N_CACHE_WORDS];
-
 //  see:  https://teaching.csse.uwa.edu.au/units/CITS2002/projects/coolinstructions.php
 enum INSTRUCTION {
     I_HALT       = 0,
@@ -75,6 +68,16 @@ const char *INSTRUCTION_name[] = {
 };
 
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
+//TODO dont need valid, tag see https://secure.csse.uwa.edu.au/run/help2002?p=np&a=432
+struct
+{   
+    //if dirty we need to write to memory, before we write over the line
+    AWORD       dirtyBit;
+    AWORD       data;
+    AWORD       tag;
+    AWORD       validBit;
+
+} cache[N_CACHE_WORDS];
 
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
@@ -82,6 +85,7 @@ int n_main_memory_reads     = 0;
 int n_main_memory_writes    = 0;
 int n_cache_memory_hits     = 0;
 int n_cache_memory_misses   = 0;
+
 int n_instructions          = 0;
 int n_func_calls            = 0;
 int m_func_call_depth       = 0;
@@ -95,10 +99,10 @@ void report_statistics(void)
     printf("@number-of-cache-memory-misses\t%i\n",  n_cache_memory_misses);
     printf("@\n");
     // FOLLOWIG LINES NOT NEEDED FOR FINAL PROJECT
-    printf("@number-of-instructions \t%i\n",         n_instructions);        
-    printf("@number-of-function-calls \t%i\n",       n_func_calls);      
-    printf("@maximum-function-call-depth\t%i\n",     m_func_call_depth);   
-    printf("@maximum-stack-depth \t\t%i\n",          m_stack_depth);
+    printf("@number-of-instructions     \t%i\n",    n_instructions);        
+    printf("@number-of-function-calls   \t%i\n",    n_func_calls);      
+    printf("@maximum-function-call-depth\t%i\n",    m_func_call_depth);   
+    printf("@maximum-stack-depth        \t%i\n",    m_stack_depth);
     printf("@\n");           
 }
 
@@ -109,56 +113,73 @@ void report_statistics(void)
 //
 //  THIS WILL MAKE THINGS EASIER WHEN WHEN EXTENDING THE CODE TO
 //  SUPPORT CACHE MEMORY
-
-// TODO Implement write back cache
-// STILL NEED TO WORK OUT THE CACHE HIT/MISS METRICS
-// implement dirty clean tags
+void printCache()
+{   
+    printf("Current Cache:\n");
+    for (int i = 0; i < N_CACHE_WORDS; ++i){
+        printf("%i ", cache[i].data);
+    }
+    printf("\n");
+}
 
 AWORD read_memory(int address)
 {   
-// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
+    int cacheAddress = address % N_CACHE_WORDS;
+    printCache();
 
-// currently counting all reads including cache reads
-    ++n_main_memory_reads;
-/*
-    if( cacheAddress <= N_CACHE_WORDS ){
-        return cache[cacheAddress];
+    if(cache[cacheAddress].validBit != 0 && cache[cacheAddress].tag != address){
+        if(cache[cacheAddress].tag != address){
+            main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
+            cache[cacheAddress].dirtyBit = 0;
+            cache[cacheAddress].tag = address;
+            cache[cacheAddress].data = main_memory[address];
+            
+            return cache[cacheAddress].data;
+        }
+        else{
+            return cache[cacheAddress].data;
+        }
     }
-    else {
-        return main_memory[address];
+    else{
+        cache[cacheAddress].validBit = 1;
+        cache[cacheAddress].tag = address;
+        cache[cacheAddress].dirtyBit = 0;
+        cache[cacheAddress].data = main_memory[address];
+
+        return cache[cacheAddress].data;
     }
-*/
-    return main_memory[address];
+    
 }
 
 void write_memory(AWORD address, AWORD value)
 {   
-// The main memory address is cacheAddress + N_MAIN_MEMORY_WORDS + 1
-//    AWORD cacheAddress = (N_MAIN_MEMORY_WORDS - address) - 1;
-//    AWORD mainAddress = cacheAddress + N_MAIN_MEMORY_WORDS + 1;
-// TODO how will main memory get the data from cache
-// check for dirty bits and clean bits
-    ++n_main_memory_writes;
-/*
-    if( cacheAddress <= N_CACHE_WORDS ){
-        // if cache is dirty write contents to main memory
+    printCache();
+    
+    int cacheAddress = address % N_CACHE_WORDS;
 
-        //++n_cache_memory_hits;
-        // data will be stored in cache
-        cache[cacheAddress] = value;
-        // the address of the data will be stored in main memory
-        //main_memory[address] = cacheAddress;
-        main_memory[address] = value;
+    //TODO add a dirty bit check or something
+    
+    
+    if(cache[cacheAddress].validBit != 0){
+        if(cache[cacheAddress].tag == address){
+            cache[cacheAddress].dirtyBit = 1; 
+            break;
+        }
+        else{
+            main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
+            cache[cacheAddress].dirtyBit = 1;
+            cache[cacheAddress].tag = address;
+            cache[cacheAddress].data = value;
+            break;    
+        }
     }
     else{
-        //not sure if we need cache misses in write memory
-        //++n_cache_memory_misses;
-        
-        main_memory[address] = value;
-    }
-*/
-    main_memory[address] = value;
+        cache[cacheAddress].validBit = 1;
+        cache[cacheAddress].dirtyBit = 1;
+        cache[cacheAddress].tag = address;
+        cache[cacheAddress].data = value;
+        break;      
+    }   
 }
 
 //  -------------------------------------------------------------------
@@ -204,23 +225,6 @@ void printFrame(int FP)
     printf("\n");
 }
 
-void printCache()
-{   
-    printf("Current Cache :\n");
-    for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", cache[i]);
-    }
-    printf("\n");
-}
-
-void printis_clean()
-{   
-    printf("Current is_clean :\n");
-    for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", is_clean[i]);
-    }
-    printf("\n");
-}
 //  -------------------------------------------------------------------
 
 //  EXECUTE THE INSTRUCTIONS IN main_memory[]
@@ -235,7 +239,6 @@ int execute_stackmachine(void)
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_memory(PC);
-//        printf("PC Value: %i\n", PC);
         ++PC;
         ++n_instructions;
 
@@ -243,19 +246,20 @@ int execute_stackmachine(void)
 //        printArray(PC, size);
 
 // PRINTS REGISTERS
+//        printf("Current Instruction being executed: %i\n", instruction);
+//        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
         printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
 //        printCache();
-//        printis_clean();
-        printf("current stack depth %i\n", m_stack_depth);
+//        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
             printf("Entered HALT\n");
             break;
         }
-        
+
         switch(instruction)
         {
             case I_NOP:
@@ -339,15 +343,17 @@ int execute_stackmachine(void)
 
             case I_PRINTI:
             // TODO IMPLEMENT
+            //    printf("Entered PRINTI\n");
+            // insruction holds TOS
                 instruction = read_memory(SP);
                 ++SP;
                 printf("%i", instruction);
-            //    printf("Entered PRINTI\n");
                 break;
 
             case I_PRINTS:
             // TODO IMPLEMENT
-                //Read get address where store the PC value
+            //    printf("Entered PRINTI\n");
+            // instruction holds the address of the next instruction when print is finished
                 instruction = PC + 1;
                 PC = read_memory(PC);
 
@@ -358,28 +364,22 @@ int execute_stackmachine(void)
                     //Each 16-bits integer contain two char
                     //first 8-bits is a
                     //second 8-bit is b
-                    char a = val%256;
-                    char b = val/256;
-                    if(a != '\0'){
-                        printf("%c", a);
-                    }
-                    else{
+                    char a = val % 256;
+                    char b = val / 256;
+
+                    if(a != '\0') printf("%c", a);
+                    else {
                         PC = instruction;
                         break;
                     }
-                    if(b != '\0'){
-                        printf("%c", b);
-                    }
-                    else{
+                    
+                    if(b != '\0') printf("%c", b);
+                    else {
                         PC = instruction;
                         break;
                     }
                 }
                 
-                
-
-                //Increment the until the NULL byte
-            //    printf("Entered PRINTI\n");
                 break;
             
             case I_PUSHC:
@@ -392,14 +392,17 @@ int execute_stackmachine(void)
             case I_PUSHA:
             // TODO CHECK
                 ++m_stack_depth;
+                // instruction holds the address of value to push
+                instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory( read_memory(PC) ) );
+                write_memory( SP, read_memory(instruction) );
                 ++PC;
                 break;
 
             case I_PUSHR:
             // TODO CHECK
                 ++m_stack_depth;
+            // instruction holds the offset
                 instruction = read_memory(PC);
                 --SP;
                 write_memory( SP, read_memory(FP + instruction) );
@@ -415,7 +418,9 @@ int execute_stackmachine(void)
             
             case I_POPR:
             // TODO CHECK
-                write_memory( FP + read_memory(PC), read_memory(SP) );
+            // instruction holds the offset
+                instruction = read_memory(PC);
+                write_memory( FP + instruction, read_memory(SP) );
                 ++SP;
                 ++PC;
                 break;
@@ -432,7 +437,6 @@ void read_coolexe_file(char filename[])
 {
     memset(main_memory, 0, sizeof main_memory);   //  clear all memory
     memset(cache, 0, sizeof cache);               //  clear cache
-    memset(is_clean, -1, sizeof is_clean);        //  clear is_clean 
 
 // read in buffer
     AWORD buffer[N_MAIN_MEMORY_WORDS];
@@ -464,12 +468,8 @@ void read_coolexe_file(char filename[])
 
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
-        write_memory(i, buffer[i]);
+        main_memory[i] = buffer[i];
     }
-
-// reset counter for wrtining to memory
-    n_cache_memory_misses = 0;
-    n_main_memory_writes = 0;
 }
 
 //  -------------------------------------------------------------------
@@ -487,14 +487,14 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("coolexe/ackermann.coolexe");
+    read_coolexe_file("Coolexe/ackermann.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
 
     report_statistics();
 
-    printf("my calculated result:\t\t%i\n", result);
+    printf("my calculated result:       \t%i\n", result);
 
     return result;          // or  exit(result);
 }
