@@ -72,12 +72,16 @@ const char *INSTRUCTION_name[] = {
 struct
 {   
     //if dirty we need to write to memory, before we write over the line
-    AWORD       dirtyBit;
-    AWORD       data;
-    AWORD       tag;
     AWORD       validBit;
-
-} cache[N_CACHE_WORDS];
+    AWORD       dirtyBit;
+    AWORD       tag;
+    AWORD       data;  
+} cache[N_CACHE_WORDS] = {
+    1,
+    1,
+    -1,
+    -1
+};
 
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
@@ -126,24 +130,22 @@ AWORD read_memory(int address)
 {   
     int cacheAddress = address % N_CACHE_WORDS;
     printCache();
-
-    if(cache[cacheAddress].validBit != 0 && cache[cacheAddress].tag != address){
-        if(cache[cacheAddress].tag != address){
+    ++n_main_memory_reads;
+    if(cache[cacheAddress].validBit != 1 && cache[cacheAddress].tag != address){
+            ++n_cache_memory_hits;
             main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
-            cache[cacheAddress].dirtyBit = 0;
+            cache[cacheAddress].dirtyBit = 1;
             cache[cacheAddress].tag = address;
             cache[cacheAddress].data = main_memory[address];
             
             return cache[cacheAddress].data;
-        }
-        else{
-            return cache[cacheAddress].data;
-        }
+        
     }
     else{
-        cache[cacheAddress].validBit = 1;
+        ++n_cache_memory_misses;
+        cache[cacheAddress].validBit = 0;
         cache[cacheAddress].tag = address;
-        cache[cacheAddress].dirtyBit = 0;
+        cache[cacheAddress].dirtyBit = 1;
         cache[cacheAddress].data = main_memory[address];
 
         return cache[cacheAddress].data;
@@ -159,26 +161,23 @@ void write_memory(AWORD address, AWORD value)
 
     //TODO add a dirty bit check or something
     
-    
-    if(cache[cacheAddress].validBit != 0){
+    ++n_main_memory_writes;
+    if(cache[cacheAddress].validBit != 1){
         if(cache[cacheAddress].tag == address){
-            cache[cacheAddress].dirtyBit = 1; 
-            break;
+            cache[cacheAddress].dirtyBit = 0; 
         }
         else{
             main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
-            cache[cacheAddress].dirtyBit = 1;
+            cache[cacheAddress].dirtyBit = 0;
             cache[cacheAddress].tag = address;
             cache[cacheAddress].data = value;
-            break;    
         }
     }
     else{
-        cache[cacheAddress].validBit = 1;
-        cache[cacheAddress].dirtyBit = 1;
+        cache[cacheAddress].validBit = 0;
+        cache[cacheAddress].dirtyBit = 0;
         cache[cacheAddress].tag = address;
         cache[cacheAddress].data = value;
-        break;      
     }   
 }
 
@@ -487,7 +486,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/ackermann.coolexe");
+    read_coolexe_file("Coolexe/fpexample.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
