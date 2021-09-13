@@ -131,9 +131,9 @@ void write_memory(AWORD address, AWORD value)
     main_memory[address] = value;
 }
 
-AWORD read_cache_memory(int address)
+AWORD read_cache_memory(int address, AWORD offset)
 {   
-    int cacheAddress = address % N_CACHE_WORDS;
+    int cacheAddress = (address % N_CACHE_WORDS) + offset;
     if(cache[cacheAddress].dirtyBit != address){
         //TODO impelemnt dirtybit
         ++n_cache_memory_misses;
@@ -151,11 +151,11 @@ AWORD read_cache_memory(int address)
     }
 }
 
-void write_cache_memory(AWORD address, AWORD value)
+void write_cache_memory(AWORD address, AWORD value, AWORD offset)
 {   
-    printCache();
+//    printCache();
     
-    int cacheAddress = address % N_CACHE_WORDS;
+    int cacheAddress = (address % N_CACHE_WORDS) + offset;
     //TODO add a dirty bit check or something 
     if(cache[cacheAddress].dirtyBit != address){
         ++n_main_memory_writes;
@@ -221,6 +221,7 @@ int execute_stackmachine(void)
     while(true) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
+        ++n_main_memory_reads;
         IWORD instruction   = read_memory(PC);
         ++PC;
         ++n_instructions;
@@ -232,10 +233,10 @@ int execute_stackmachine(void)
 //        printf("Current Instruction being executed: %i\n", instruction);
 //        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
-        printStack(SP);
+//        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
-//        printCache();
+        printCache();
 //        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
@@ -251,22 +252,22 @@ int execute_stackmachine(void)
 
             case I_ADD:
                 ++SP;
-                write_memory( SP, read_memory(SP - 1) + read_memory(SP) );
+                write_cache_memory( SP, read_cache_memory(SP - 1, 0) + read_cache_memory(SP, 0), 0 );
                 break;
 
             case I_SUB:
                 ++SP;
-                write_memory( SP, read_memory(SP) - read_memory(SP - 1) );
+                write_cache_memory( SP, read_cache_memory(SP, 0) - read_cache_memory(SP - 1, 0), 0 );
                 break;
             
             case I_MULT:
                 ++SP;
-                write_memory( SP, read_memory(SP - 1) * read_memory(SP) );
+                write_cache_memory( SP, read_cache_memory(SP - 1, 0) * read_cache_memory(SP, 0), 0 );
                 break;
 
             case I_DIV:
                 ++SP;
-                write_memory( SP, read_memory(SP) / read_memory(SP - 1) );
+                write_cache_memory( SP, read_cache_memory(SP, 0) / read_cache_memory(SP - 1, 0), 0 );
                 break;
 
             case I_CALL:
@@ -277,49 +278,53 @@ int execute_stackmachine(void)
             // push return address to TOS
                 ++m_stack_depth;
                 --SP;
-                write_memory(SP, PC + 1);
+                write_cache_memory(SP, PC + 1, 0);
 
             // push FP address to TOS
                 ++m_stack_depth;
                 --SP;
-                write_memory(SP, FP);
+                write_cache_memory(SP, FP, 0);
 
             // set FP 
                 FP = SP;
 
             // start execution of next function
+                ++n_main_memory_reads;
                 PC = read_memory(PC);
                 break;
 
             case I_RETURN:
             //TODO CHECK
             // currently holds the off set
+                ++n_main_memory_reads;
                 instruction = read_memory(PC);
 
             // PC goes back to the following instruction that called current function
-                PC = read_memory(FP + 1);
+                PC = read_cache_memory(FP + 1, 0);
             
             // calculated return value placed in the FP offset
-                write_memory( FP + instruction, read_memory(SP) );
+                write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
 
             // SP reset to actual TOS
                 SP = FP + instruction;
 
             //FP reset
-                FP = read_memory(FP);
+                FP = read_cache_memory(FP, 0);
                 break;
 
             case I_JMP:
             // TODO CHECK CORRECTNESS
             //    printf("Entered JMP\n");
+                ++n_main_memory_reads;
                 PC = read_memory(PC);
                 break;
 
             case I_JEQ:
             // TODO CHECK CORRECTNESS
             //    printf("Entered JEQ\n");
+                ++n_main_memory_reads;
                 --m_stack_depth;
-                if( read_memory(SP) == 0 ) PC = read_memory(PC);
+                if( read_cache_memory(SP, 0) == 0 ) PC = read_memory(PC);
                 else ++PC;
                 ++SP;
                 break;
@@ -328,6 +333,7 @@ int execute_stackmachine(void)
             // TODO IMPLEMENT
             //    printf("Entered PRINTI\n");
             // insruction holds TOS
+                ++n_main_memory_reads;
                 instruction = read_memory(SP);
                 ++SP;
                 printf("%i", instruction);
@@ -338,10 +344,12 @@ int execute_stackmachine(void)
             //    printf("Entered PRINTI\n");
             // instruction holds the address of the next instruction when print is finished
                 instruction = PC + 1;
+                ++n_main_memory_reads;
                 PC = read_memory(PC);
 
                 while(true){
                     //read value from PC 
+                    ++n_main_memory_reads;
                     AWORD val = read_memory(PC);
                     ++PC;
                     //Each 16-bits integer contain two char
@@ -366,35 +374,39 @@ int execute_stackmachine(void)
                 break;
             
             case I_PUSHC:
+                ++n_main_memory_reads;
                 ++m_stack_depth;
                 --SP;
-                write_memory( SP, read_memory(PC) );
+                write_cache_memory( SP, read_memory(PC), 0 );
                 ++PC;
                 break;
 
             case I_PUSHA:
             // TODO CHECK
                 ++m_stack_depth;
+                n_main_memory_reads += 2;
                 // instruction holds the address of value to push
                 instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory(instruction) );
+                write_cache_memory( SP, read_memory(instruction), 0 );
                 ++PC;
                 break;
 
             case I_PUSHR:
             // TODO CHECK
                 ++m_stack_depth;
+                ++n_main_memory_reads ;
             // instruction holds the offset
                 instruction = read_memory(PC);
                 --SP;
-                write_memory( SP, read_memory(FP + instruction) );
+                write_cache_memory( SP, read_cache_memory(FP, instruction), 0 );
                 ++PC;
                 break;
 
             case I_POPA:
             // TODO CHECK
-                write_memory( read_memory(PC), read_memory(SP) );
+                ++n_main_memory_reads;
+                write_cache_memory( read_memory(PC), read_cache_memory(SP, 0), 0 );
                 ++SP;
                 ++PC;
                 break;
@@ -402,8 +414,9 @@ int execute_stackmachine(void)
             case I_POPR:
             // TODO CHECK
             // instruction holds the offset
+                ++n_main_memory_reads;
                 instruction = read_memory(PC);
-                write_memory( FP + instruction, read_memory(SP) );
+                write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
                 ++SP;
                 ++PC;
                 break;
@@ -411,7 +424,7 @@ int execute_stackmachine(void)
     }
 
 //  THE RESULT OF EXECUTING THE INSTRUCTIONS IS FOUND ON THE TOP-OF-STACK
-    return read_memory(SP);
+    return read_cache_memory(SP, 0);
 }
 
 //  -------------------------------------------------------------------
@@ -470,7 +483,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/ackermann.coolexe");
+    read_coolexe_file("Coolexe/parameters.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
