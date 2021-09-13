@@ -1,6 +1,6 @@
 //  CITS2002 Project 1 2021
-//  Name(s):             Tom Nguyen     (, student-name2)
-//  Student number(s):   22914578       (, student-number2)
+//  Name(s):             Tom Nguyen     , Yu Li
+//  Student number(s):   22914578       , 21241907
 
 //  compile with:  cc -std=c11 -Wall -Werror -o runcool runcool.c
 
