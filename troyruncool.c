@@ -131,7 +131,7 @@ AWORD read_memory(int address)
         cache[cacheAddress].dirtyBit = 1;
         return cache[cacheAddress].data;
     }
-    else if(cache[cacheAddress].dirtyBit == 1 && cache[cacheAddress].tag == address){
+    else {
         return cache[cacheAddress].data;
     }
     
