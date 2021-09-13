@@ -123,7 +123,6 @@ void printCache()
 
 AWORD read_memory(int address)
 {   
-    printf("current mem value %i\n", main_memory[address]);
     return main_memory[address];
 }
 
@@ -291,7 +290,6 @@ int execute_stackmachine(void)
 
             // start execution of next function
                 ++n_main_memory_reads;
-                printf("%i\n", main_memory[PC]);
                 PC = read_memory(PC);
                 break;
 
@@ -484,7 +482,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/parameters.coolexe");
+    read_coolexe_file("Coolexe/ifelse.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
