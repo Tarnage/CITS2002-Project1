@@ -122,7 +122,8 @@ void printCache()
 }
 
 AWORD read_memory(int address)
-{
+{   
+    printf("current mem value %i\n", main_memory[address]);
     return main_memory[address];
 }
 
@@ -131,17 +132,17 @@ void write_memory(AWORD address, AWORD value)
     main_memory[address] = value;
 }
 
-AWORD read_cache_memory(int address, AWORD offset)
+AWORD read_cache_memory(int address, int offset)
 {   
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    if(cache[cacheAddress].dirtyBit != address){
+    if(cache[cacheAddress].dirtyBit != address + offset){
         //TODO impelemnt dirtybit
         ++n_cache_memory_misses;
         ++n_main_memory_reads;
         ++n_main_memory_writes;
         write_memory(cache[cacheAddress].dirtyBit , cache[cacheAddress].data);
         cache[cacheAddress].data = read_memory(address);
-        cache[cacheAddress].dirtyBit = address;
+        cache[cacheAddress].dirtyBit = address + offset;
 
         return cache[cacheAddress].data;
     }
@@ -151,18 +152,18 @@ AWORD read_cache_memory(int address, AWORD offset)
     }
 }
 
-void write_cache_memory(AWORD address, AWORD value, AWORD offset)
+void write_cache_memory(AWORD address, AWORD value, int offset)
 {   
 //    printCache();
     
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
     //TODO add a dirty bit check or something 
-    if(cache[cacheAddress].dirtyBit != address){
+    if(cache[cacheAddress].dirtyBit != address + offset){
         ++n_main_memory_writes;
-        write_memory(cacheAddress, cache[cacheAddress].data);
+        write_memory(address, cache[cacheAddress].data);
     }
     cache[cacheAddress].data        = value;
-    cache[cacheAddress].dirtyBit    = address;
+    cache[cacheAddress].dirtyBit    = address + offset;
 }
 
 //  -------------------------------------------------------------------
@@ -227,7 +228,7 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-//        printArray(PC, size);
+        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("Current Instruction being executed: %i\n", instruction);
@@ -252,22 +253,22 @@ int execute_stackmachine(void)
 
             case I_ADD:
                 ++SP;
-                write_cache_memory( SP, read_cache_memory(SP - 1, 0) + read_cache_memory(SP, 0), 0 );
+                write_cache_memory( SP, read_cache_memory(SP, -1) + read_cache_memory(SP, 0), 0 );
                 break;
 
             case I_SUB:
                 ++SP;
-                write_cache_memory( SP, read_cache_memory(SP, 0) - read_cache_memory(SP - 1, 0), 0 );
+                write_cache_memory( SP, read_cache_memory(SP, 0) - read_cache_memory(SP, -1), 0 );
                 break;
             
             case I_MULT:
                 ++SP;
-                write_cache_memory( SP, read_cache_memory(SP - 1, 0) * read_cache_memory(SP, 0), 0 );
+                write_cache_memory( SP, read_cache_memory(SP, -1) * read_cache_memory(SP, 0), 0 );
                 break;
 
             case I_DIV:
                 ++SP;
-                write_cache_memory( SP, read_cache_memory(SP, 0) / read_cache_memory(SP - 1, 0), 0 );
+                write_cache_memory( SP, read_cache_memory(SP, 0) / read_cache_memory(SP, -1), 0 );
                 break;
 
             case I_CALL:
@@ -290,6 +291,7 @@ int execute_stackmachine(void)
 
             // start execution of next function
                 ++n_main_memory_reads;
+                printf("%i\n", main_memory[PC]);
                 PC = read_memory(PC);
                 break;
 
@@ -300,14 +302,13 @@ int execute_stackmachine(void)
                 instruction = read_memory(PC);
 
             // PC goes back to the following instruction that called current function
-                PC = read_cache_memory(FP + 1, 0);
+                PC = read_cache_memory(FP, 1);
             
             // calculated return value placed in the FP offset
                 write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
 
             // SP reset to actual TOS
                 SP = FP + instruction;
-
             //FP reset
                 FP = read_cache_memory(FP, 0);
                 break;
