@@ -73,6 +73,7 @@ struct
 {   
     //if dirty we need to write to memory, before we write over the line
     AWORD       dirtyBit;
+    AWORD       tag;
     AWORD         data;
 
 } cache[N_CACHE_WORDS];
@@ -121,15 +122,25 @@ void printCache()
 }
 
 AWORD read_memory(int address)
+{
+    return main_memory[address];
+}
+
+void write_memory(AWORD address, AWORD value)
+{
+    main_memory[address] = value;
+}
+
+AWORD read_cache_memory(int address)
 {   
     int cacheAddress = address % N_CACHE_WORDS;
-    printCache();
-    if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].dirtyBit != address){
+    if(cache[cacheAddress].dirtyBit != address){
         //TODO impelemnt dirtybit
         ++n_cache_memory_misses;
         ++n_main_memory_reads;
-        //++n_main_memory_writes;
-        cache[cacheAddress].data = main_memory[address];
+        ++n_main_memory_writes;
+        write_memory(cache[cacheAddress].dirtyBit , cache[cacheAddress].data);
+        cache[cacheAddress].data = read_memory(address);
         cache[cacheAddress].dirtyBit = address;
 
         return cache[cacheAddress].data;
@@ -140,15 +151,15 @@ AWORD read_memory(int address)
     }
 }
 
-void write_memory(AWORD address, AWORD value)
+void write_cache_memory(AWORD address, AWORD value)
 {   
     printCache();
     
     int cacheAddress = address % N_CACHE_WORDS;
     //TODO add a dirty bit check or something 
-    if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].dirtyBit != address){
+    if(cache[cacheAddress].dirtyBit != address){
         ++n_main_memory_writes;
-        main_memory[cache[cacheAddress].dirtyBit] = cache[cacheAddress].data;
+        write_memory(cacheAddress, cache[cacheAddress].data);
     }
     cache[cacheAddress].data        = value;
     cache[cacheAddress].dirtyBit    = address;
@@ -459,7 +470,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/fpexample.coolexe");
+    read_coolexe_file("Coolexe/ackermann.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
