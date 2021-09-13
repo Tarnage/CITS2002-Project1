@@ -160,7 +160,6 @@ int execute_stackmachine(void)
         ++PC;
 
         if(instruction == I_HALT){
-            printf("Entered HALT\n");
             break;
         }
 
@@ -241,7 +240,7 @@ int execute_stackmachine(void)
             case I_PRINTI:
             // insruction holds TOS
                 ++n_main_memory_reads;
-                instruction = read_memory(SP);
+                instruction = read_cache_memory(SP, 0);
                 ++SP;
                 printf("%i", instruction);
                 break;

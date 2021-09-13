@@ -122,7 +122,6 @@ void printCache()
 
 AWORD read_memory(int address)
 {   
-    printf("current mem value %i\n", main_memory[address]);
     return main_memory[address];
 }
 
@@ -227,7 +226,7 @@ int execute_stackmachine(void)
         ++n_instructions;
 
 //  PRINT THE INSTRUCTIONS FOUND IN main_memory[]
-        printArray(PC, size);
+//        printArray(PC, size);
 
 // PRINTS REGISTERS
 //        printf("Current Instruction being executed: %i\n", instruction);
@@ -236,7 +235,7 @@ int execute_stackmachine(void)
 //        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
-        printCache();
+//        printCache();
 //        printf("current stack depth %i\n", m_stack_depth);
 
         if(instruction == I_HALT){
@@ -290,7 +289,6 @@ int execute_stackmachine(void)
 
             // start execution of next function
                 ++n_main_memory_reads;
-                printf("%i\n", main_memory[PC]);
                 PC = read_memory(PC);
                 break;
 
@@ -334,7 +332,7 @@ int execute_stackmachine(void)
             //    printf("Entered PRINTI\n");
             // insruction holds TOS
                 ++n_main_memory_reads;
-                instruction = read_memory(SP);
+                instruction = read_cache_memory(SP, 0);
                 ++SP;
                 printf("%i", instruction);
                 break;
@@ -483,7 +481,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/parameters.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/factorial_test2.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
