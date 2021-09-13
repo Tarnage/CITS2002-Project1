@@ -72,8 +72,7 @@ const char *INSTRUCTION_name[] = {
 struct
 {   
     //if dirty we need to write to memory, before we write over the line
-    AWORD       dirtyBit;
-    AWORD       tag;
+    AWORD         dirtyBit;
     AWORD         data;
 
 } cache[N_CACHE_WORDS];
