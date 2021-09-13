@@ -76,12 +76,7 @@ struct
     AWORD       dirtyBit;
     AWORD       tag;
     AWORD       data;  
-} cache[N_CACHE_WORDS] = {
-    1,
-    1,
-    -1,
-    -1
-};
+} cache[N_CACHE_WORDS] 
 
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
@@ -131,14 +126,21 @@ AWORD read_memory(int address)
     int cacheAddress = address % N_CACHE_WORDS;
     printCache();
     ++n_main_memory_reads;
-    if(cache[cacheAddress].validBit != 1 && cache[cacheAddress].tag != address){
+    if(cache[cacheAddress].validBit != 1){
             ++n_cache_memory_hits;
-            main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
-            cache[cacheAddress].dirtyBit = 1;
-            cache[cacheAddress].tag = address;
-            cache[cacheAddress].data = main_memory[address];
+            if(cache[cacheAddress].tag != address){
+                main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
+                cache[cacheAddress].dirtyBit = 1;
+                cache[cacheAddress].tag = address;
+                cache[cacheAddress].data = main_memory[address];
+
+                return cache[cacheAddress].data;
+            }
+            else{
+                return cache[cacheAddress].data;
+            }
             
-            return cache[cacheAddress].data;
+            
         
     }
     else{
