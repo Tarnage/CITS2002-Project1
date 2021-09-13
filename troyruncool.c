@@ -72,11 +72,10 @@ const char *INSTRUCTION_name[] = {
 struct
 {   
     //if dirty we need to write to memory, before we write over the line
-    AWORD       validBit;
-    AWORD       dirtyBit;
-    AWORD       tag;
-    AWORD       data;  
-} cache[N_CACHE_WORDS] 
+    uint8_t         dirtyBit;
+    AWORD           tag;
+    AWORD           data;  
+} cache[N_CACHE_WORDS];
 
 
 //  THE STATISTICS TO BE ACCUMULATED AND REPORTED
@@ -126,30 +125,13 @@ AWORD read_memory(int address)
     int cacheAddress = address % N_CACHE_WORDS;
     printCache();
     ++n_main_memory_reads;
-    if(cache[cacheAddress].validBit != 1){
-            ++n_cache_memory_hits;
-            if(cache[cacheAddress].tag != address){
-                main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
-                cache[cacheAddress].dirtyBit = 1;
-                cache[cacheAddress].tag = address;
-                cache[cacheAddress].data = main_memory[address];
-
-                return cache[cacheAddress].data;
-            }
-            else{
-                return cache[cacheAddress].data;
-            }
-            
-            
-        
-    }
-    else{
-        ++n_cache_memory_misses;
-        cache[cacheAddress].validBit = 0;
+    if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].tag != address){
+        cache[cacheAddress].data = main_memory[address];
         cache[cacheAddress].tag = address;
         cache[cacheAddress].dirtyBit = 1;
-        cache[cacheAddress].data = main_memory[address];
-
+        return cache[cacheAddress].data;
+    }
+    else if(cache[cacheAddress].dirtyBit == 1 && cache[cacheAddress].tag == address){
         return cache[cacheAddress].data;
     }
     
@@ -164,23 +146,17 @@ void write_memory(AWORD address, AWORD value)
     //TODO add a dirty bit check or something
     
     ++n_main_memory_writes;
-    if(cache[cacheAddress].validBit != 1){
-        if(cache[cacheAddress].tag == address){
-            cache[cacheAddress].dirtyBit = 0; 
-        }
-        else{
-            main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
-            cache[cacheAddress].dirtyBit = 0;
-            cache[cacheAddress].tag = address;
-            cache[cacheAddress].data = value;
-        }
-    }
-    else{
-        cache[cacheAddress].validBit = 0;
-        cache[cacheAddress].dirtyBit = 0;
+    if(cache[cacheAddress].dirtyBit == 0 || cache[cacheAddress].tag != address){
+        main_memory[cache[cacheAddress].tag] = cache[cacheAddress].data;
         cache[cacheAddress].tag = address;
+        cache[cacheAddress].dirtyBit = 0;
         cache[cacheAddress].data = value;
-    }   
+    }
+    else if(cache[cacheAddress].dirtyBit == 1){
+        cache[cacheAddress].tag = address;
+        cache[cacheAddress].dirtyBit = 0;
+        cache[cacheAddress].data = value;
+    }
 }
 
 //  -------------------------------------------------------------------
