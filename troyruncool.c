@@ -226,7 +226,7 @@ int execute_stackmachine(void)
 //        printf("Current Instruction being executed: %i\n", instruction);
 //        printf("PC Value: %i\n", PC);
 //        printf("SP Value: %i\n", SP);
-        printStack(SP);
+//        printStack(SP);
 //        printf("FP Value: %i\n", FP);
 //        printFrame(FP);
 //        printCache();
@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("Coolexe/fpexample.coolexe");
+    read_coolexe_file("Coolexe/factoriaL_test1.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();

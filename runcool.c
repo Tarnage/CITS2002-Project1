@@ -101,11 +101,13 @@ void report_statistics(void)
 
 AWORD read_memory(int address)
 {   
+    ++n_main_memory_reads;
     return main_memory[address];
 }
 
 void write_memory(AWORD address, AWORD value)
-{
+{   
+    ++n_main_memory_writes;
     main_memory[address] = value;
 }
 
@@ -114,17 +116,14 @@ AWORD read_cache_memory(int address, int offset)
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
     if(cache[cacheAddress].dirtyBit != address + offset){
         ++n_cache_memory_misses;
-        ++n_main_memory_reads;
-        ++n_main_memory_writes;
 
         write_memory(cache[cacheAddress].dirtyBit , cache[cacheAddress].data);
-        cache[cacheAddress].data = read_memory(address);
+        cache[cacheAddress].data = read_memory(address + offset);
         cache[cacheAddress].dirtyBit = address + offset;
         return cache[cacheAddress].data;
     }
     else{
         ++n_cache_memory_hits;
-
         return cache[cacheAddress].data;
     }
 }
@@ -134,8 +133,7 @@ void write_cache_memory(AWORD address, AWORD value, int offset)
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
     
     if(cache[cacheAddress].dirtyBit != address + offset){
-        ++n_main_memory_writes;
-        write_memory(address, cache[cacheAddress].data);
+        write_memory(cache[cacheAddress].dirtyBit, cache[cacheAddress].data);
     }
 
     cache[cacheAddress].data        = value;
@@ -155,8 +153,7 @@ int execute_stackmachine(void)
     while(true) {
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
-        ++n_main_memory_reads;
-        IWORD instruction   = read_memory(PC);
+        IWORD instruction   = read_cache_memory(PC, 0);
         ++PC;
 
         if(instruction == I_HALT){
@@ -203,14 +200,12 @@ int execute_stackmachine(void)
                 FP = SP;
 
             // start execution of next function
-                ++n_main_memory_reads;
-                PC = read_memory(PC);
+                PC = read_cache_memory(PC, 0);
                 break;
 
             case I_RETURN:
             // currently holds the off set
-                ++n_main_memory_reads;
-                instruction = read_memory(PC);
+                instruction = read_cache_memory(PC, 0);
 
             // PC goes back to the following instruction that called current function
                 PC = read_cache_memory(FP, 1);
@@ -226,20 +221,17 @@ int execute_stackmachine(void)
 
             case I_JMP:
             //    printf("Entered JMP\n");
-                ++n_main_memory_reads;
-                PC = read_memory(PC);
+                PC = read_cache_memory(PC, 0);
                 break;
 
             case I_JEQ:
-                ++n_main_memory_reads;
-                if( read_cache_memory(SP, 0) == 0 ) PC = read_memory(PC);
+                if( read_cache_memory(SP, 0) == 0 ) PC = read_cache_memory(PC, 0);
                 else ++PC;
                 ++SP;
                 break;
 
             case I_PRINTI:
             // insruction holds TOS
-                ++n_main_memory_reads;
                 instruction = read_cache_memory(SP, 0);
                 ++SP;
                 printf("%i", instruction);
@@ -248,13 +240,11 @@ int execute_stackmachine(void)
             case I_PRINTS:
             // instruction holds the address of the next instruction when print is finished
                 instruction = PC + 1;
-                ++n_main_memory_reads;
-                PC = read_memory(PC);
+                PC = read_cache_memory(PC, 0);
 
                 while(true){
                     //read value from PC 
-                    ++n_main_memory_reads;
-                    AWORD val = read_memory(PC);
+                    AWORD val = read_cache_memory(PC, 0);
                     ++PC;
                     //Each 16-bits integer contain two char
                     //first 8-bits is a
@@ -278,41 +268,36 @@ int execute_stackmachine(void)
                 break;
             
             case I_PUSHC:
-                ++n_main_memory_reads;
                 --SP;
-                write_cache_memory( SP, read_memory(PC), 0 );
+                write_cache_memory( SP, read_cache_memory(PC, 0), 0 );
                 ++PC;
                 break;
 
             case I_PUSHA:
-                n_main_memory_reads += 2;
                 // instruction holds the address of value to push
-                instruction = read_memory(PC);
+                instruction = read_cache_memory(PC, 0);
                 --SP;
-                write_cache_memory( SP, read_memory(instruction), 0 );
+                write_cache_memory( SP, read_cache_memory(instruction, 0), 0 );
                 ++PC;
                 break;
 
             case I_PUSHR:
-                ++n_main_memory_reads ;
             // instruction holds the offset
-                instruction = read_memory(PC);
+                instruction = read_cache_memory(PC, 0);
                 --SP;
                 write_cache_memory( SP, read_cache_memory(FP, instruction), 0 );
                 ++PC;
                 break;
 
             case I_POPA:
-                ++n_main_memory_reads;
-                write_cache_memory( read_memory(PC), read_cache_memory(SP, 0), 0 );
+                write_cache_memory( read_cache_memory(PC, 0), read_cache_memory(SP, 0), 0 );
                 ++SP;
                 ++PC;
                 break;
             
             case I_POPR:
             // instruction holds the offset
-                ++n_main_memory_reads;
-                instruction = read_memory(PC);
+                instruction = read_cache_memory(PC, 0);
                 write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
                 ++SP;
                 ++PC;
@@ -363,6 +348,12 @@ void read_coolexe_file(char filename[])
 
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
+
+        if(i < N_CACHE_WORDS){
+            cache[i].data = buffer[i];
+            cache[i].dirtyBit = i;
+        }
+
         main_memory[i] = buffer[i];
     }
 }
