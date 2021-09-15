@@ -140,15 +140,13 @@ void write_memory(AWORD address, AWORD value)
 
 AWORD read_cache_memory(int address, int offset)
 {   
-    int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    if(cache[cacheAddress].tag == address + offset && cache[cacheAddress].valid == 1){
-        ++n_cache_memory_hits;
-        return cache[cacheAddress].data;
-    }
-    else{
+    int cacheAddress = (address  + offset) % N_CACHE_WORDS;
+    if(cache[cacheAddress].tag != address + offset || cache[cacheAddress].valid == 0){
         ++n_cache_memory_misses;
 
-        if(cache[cacheAddress].dirtyBit == 0 && cache[cacheAddress].valid == 1){
+        if(cache[cacheAddress].dirtyBit == 0 && 
+                cache[cacheAddress].valid == 1 && 
+                    cache[cacheAddress].tag != address + offset){
             write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
         }
         cache[cacheAddress].data = read_memory(address + offset);
@@ -158,16 +156,19 @@ AWORD read_cache_memory(int address, int offset)
 
         return cache[cacheAddress].data;
     }
+    else{
+        ++n_cache_memory_hits;
+        return cache[cacheAddress].data;
+    }
 }
 
 void write_cache_memory(AWORD address, AWORD value, int offset)
 {     
-    int cacheAddress = (address % N_CACHE_WORDS) + offset;
-//    if(address == 76 && value == 53){
-//        printCache();
-//        printf("Something happened @ instruction %i\n", n_instructions);
-//    }
-    if(cache[cacheAddress].dirtyBit == 0 && cache[cacheAddress].valid == 1){
+    int cacheAddress = (address  + offset) % N_CACHE_WORDS;
+
+    if(cache[cacheAddress].dirtyBit == 0 && 
+            cache[cacheAddress].valid == 1 && 
+                cache[cacheAddress].tag != address + offset){
         write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
     }
 
@@ -200,7 +201,7 @@ void printStack(int SP)
     else{
         printf("Current Stack:\n");
         for (int i = SP; i < N_MAIN_MEMORY_WORDS; ++i){
-            printf("%i ", main_memory[i]);
+            printf("%i ", read_cache_memory(i, 0));
         }
     }
     printf("\n");
@@ -229,10 +230,6 @@ int execute_stackmachine(void)
     int PC      = 0;                    // 1st instruction is at address=0
     int SP      = N_MAIN_MEMORY_WORDS;  // initialised to top-of-stack
     int FP      = 0;                    // frame pointer
-    if(n_main_memory_reads == 4779){
-        printStack(SP);
-        printCache();
-    }
 
     while(true) {
         IWORD value1;
@@ -254,7 +251,10 @@ int execute_stackmachine(void)
 
 //  FETCH THE NEXT INSTRUCTION TO BE EXECUTED
         IWORD instruction   = read_cache_memory(PC, 0);
-        
+//        printStack(SP);
+        //printf("Current TOS: %i\n", read_cache_memory(SP, 0));
+        //printf("Previous TOS: %i\n", read_cache_memory(SP + 1, 0));
+        //printf("Current stack count: %i\n", N_MAIN_MEMORY_WORDS - SP);
         ++PC;
         ++n_instructions;
 
@@ -336,7 +336,9 @@ int execute_stackmachine(void)
                 PC = read_cache_memory(FP, 1);
             
             // calculated return value placed in the FP offset
-                write_cache_memory( FP, read_cache_memory(SP, 0), offset );
+                value1 = read_cache_memory(SP, 0);
+                
+                write_cache_memory( FP, value1, offset );
 
             // SP reset to actual TOS
                 SP = FP + offset;
@@ -354,7 +356,7 @@ int execute_stackmachine(void)
             // TODO CHECK CORRECTNESS
             //    printf("Entered JEQ\n");
                 --m_stack_depth;
-                if( read_cache_memory(SP, 0) == 0 ) PC = read_cache_memory(PC, 0);
+                if( read_cache_memory(SP, 0) <= 0 ) PC = read_cache_memory(PC, 0);
                 else ++PC;
                 ++SP;
                 break;
@@ -403,6 +405,7 @@ int execute_stackmachine(void)
             case I_PUSHC:
                 ++m_stack_depth;
                 --SP;
+                value1 = read_cache_memory(PC, 0);
                 write_cache_memory( SP, read_cache_memory(PC, 0), 0 );
                 ++PC;
                 break;
@@ -423,6 +426,7 @@ int execute_stackmachine(void)
             // instruction holds the offset
                 offset = read_cache_memory(PC, 0);
                 --SP;
+                value1 = read_cache_memory(FP, offset);
                 write_cache_memory( SP, read_cache_memory(FP, offset), 0 );
                 ++PC;
                 break;

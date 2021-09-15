@@ -200,19 +200,14 @@ int execute_stackmachine(void)
                 break;
 
             case I_CALL:
-
-            // push return address to TOS
                 --SP;
                 write_cache_memory(SP, PC + 1, 0);
 
-            // push FP address to TOS
                 --SP;
                 write_cache_memory(SP, FP, 0);
 
-            // set FP 
                 FP = SP;
 
-            // start execution of next function
                 PC = read_cache_memory(PC, 0);
                 break;
 
@@ -220,20 +215,16 @@ int execute_stackmachine(void)
             // currently holds the off set
                 instruction = read_cache_memory(PC, 0);
 
-            // PC goes back to the following instruction that called current function
                 PC = read_cache_memory(FP, 1);
             
-            // calculated return value placed in the FP offset
                 write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
 
-            // SP reset to actual TOS
                 SP = FP + instruction;
-            //FP reset
+
                 FP = read_cache_memory(FP, 0);
                 break;
 
             case I_JMP:
-            //    printf("Entered JMP\n");
                 PC = read_cache_memory(PC, 0);
                 break;
 
@@ -256,12 +247,10 @@ int execute_stackmachine(void)
                 PC = read_cache_memory(PC, 0);
 
                 while(true){
-                    //read value from PC 
+
                     AWORD val = read_cache_memory(PC, 0);
                     ++PC;
-                    //Each 16-bits integer contain two char
-                    //first 8-bits is a
-                    //second 8-bit is b
+
                     char a = val % 256;
                     char b = val / 256;
 
@@ -356,17 +345,12 @@ void read_coolexe_file(char filename[])
 
 // read in exe file
     fread(buffer, sizeof(buffer), 1, fp_in);
+
 // don't forget to close the file
     fclose(fp_in);
 
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
-
-        if(i < N_CACHE_WORDS){
-            cache[i].data = buffer[i];
-            cache[i].dirtyBit = i;
-        }
-
         main_memory[i] = buffer[i];
     }
 }
