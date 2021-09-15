@@ -116,6 +116,7 @@ void write_memory(AWORD address, AWORD value)
 AWORD read_cache_memory(int address, int offset)
 {   
     int cacheAddress = (address  + offset) % N_CACHE_WORDS;
+
     if(cache[cacheAddress].tag != address + offset || cache[cacheAddress].valid == 0){
         ++n_cache_memory_misses;
 
@@ -146,7 +147,6 @@ void write_cache_memory(AWORD address, AWORD value, int offset)
                 cache[cacheAddress].tag != address + offset){
         write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
     }
-
     cache[cacheAddress].data         = value;
     cache[cacheAddress].tag          = address + offset;
     cache[cacheAddress].dirtyBit     = 0;
@@ -179,6 +179,7 @@ int execute_stackmachine(void)
             // NO OPERATION, CONTINUES TO NEXT INSTRUCTION
                 break;
 
+            // standard arithmetic operations 
             case I_ADD:
                 ++SP;
                 write_cache_memory( SP, read_cache_memory(SP, -1) + read_cache_memory(SP, 0), 0 );
@@ -200,14 +201,20 @@ int execute_stackmachine(void)
                 break;
 
             case I_CALL:
+            // I_CALL will store the current state of the process before calling the next function
+            
+            // store return address
                 --SP;
                 write_cache_memory(SP, PC + 1, 0);
 
+            // store the frame pointer
                 --SP;
                 write_cache_memory(SP, FP, 0);
 
+            // set frame pointer to the top of the stack
                 FP = SP;
 
+            // start execution of the next function
                 PC = read_cache_memory(PC, 0);
                 break;
 
@@ -215,26 +222,33 @@ int execute_stackmachine(void)
             // currently holds the off set
                 instruction = read_cache_memory(PC, 0);
 
+            // next opcode to execute
                 PC = read_cache_memory(FP, 1);
             
+            // store functions return value to TOS
                 write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
-
+            
+            // set stack pointer to TOS
                 SP = FP + instruction;
 
+            // set frame pointer to prevoius process
                 FP = read_cache_memory(FP, 0);
                 break;
 
             case I_JMP:
+            // unconditonal jump
                 PC = read_cache_memory(PC, 0);
                 break;
 
             case I_JEQ:
+            // jump iff TOS is 0, (assumption but not less than 0?) 
                 if( read_cache_memory(SP, 0) == 0 ) PC = read_cache_memory(PC, 0);
                 else ++PC;
                 ++SP;
                 break;
 
             case I_PRINTI:
+            // prints interger at the TOS to STDOUT
             // insruction holds TOS
                 instruction = read_cache_memory(SP, 0);
                 ++SP;
@@ -242,6 +256,7 @@ int execute_stackmachine(void)
                 break;
 
             case I_PRINTS:
+            // prints string to STDOUT
             // instruction holds the address of the next instruction when print is finished
                 instruction = PC + 1;
                 PC = read_cache_memory(PC, 0);
@@ -270,13 +285,15 @@ int execute_stackmachine(void)
                 break;
             
             case I_PUSHC:
+            // push constant to TOS
                 --SP;
                 write_cache_memory( SP, read_cache_memory(PC, 0), 0 );
                 ++PC;
                 break;
 
             case I_PUSHA:
-                // instruction holds the address of value to push
+            // push word at following address to TOS
+            // instruction holds the address of value to push
                 instruction = read_cache_memory(PC, 0);
                 --SP;
                 write_cache_memory( SP, read_cache_memory(instruction, 0), 0 );
@@ -284,6 +301,7 @@ int execute_stackmachine(void)
                 break;
 
             case I_PUSHR:
+            // push word, that is offset from frame pointer to TOS
             // instruction holds the offset
                 instruction = read_cache_memory(PC, 0);
                 --SP;
@@ -292,12 +310,14 @@ int execute_stackmachine(void)
                 break;
 
             case I_POPA:
+            // pop word at the following address off the stack
                 write_cache_memory( read_cache_memory(PC, 0), read_cache_memory(SP, 0), 0 );
                 ++SP;
                 ++PC;
                 break;
             
             case I_POPR:
+            //pop word, that is offset from frame pointer to TOS
             // instruction holds the offset
                 instruction = read_cache_memory(PC, 0);
                 write_cache_memory( FP, read_cache_memory(SP, 0), instruction );
