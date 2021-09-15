@@ -72,7 +72,8 @@ const char *INSTRUCTION_name[] = {
 struct
 {   
     //if dirty we need to write to memory, before we write over the line
-    AWORD         dirtyBit;
+    int8_t        dirtyBit;
+    int8_t        valid;
     AWORD         tag;
     AWORD         data;
 
@@ -116,7 +117,7 @@ void printCache()
 {   
     printf("Current Cache:\n");
     for (int i = 0; i < N_CACHE_WORDS; ++i){
-        printf("%i ", cache[i].data);
+        printf("%i-%i-%i-%i, ", cache[i].data, cache[i].dirtyBit, cache[i].tag, cache[i].valid);
     }
     printf("\n");
 }
@@ -136,16 +137,20 @@ void write_memory(AWORD address, AWORD value)
 AWORD read_cache_memory(int address, int offset)
 {   
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    if(cache[cacheAddress].dirtyBit != address + offset){
+    if(cache[cacheAddress].tag != address + offset || cache[cacheAddress].valid == 0){
         ++n_cache_memory_misses;
-        
-        write_memory(cache[cacheAddress].dirtyBit , cache[cacheAddress].data);
+
+        if(cache[cacheAddress].dirtyBit == 0 && cache[cacheAddress].valid == 1 && cache[cacheAddress].tag != address + offset){
+            write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
+        }
         cache[cacheAddress].data = read_memory(address + offset);
-        cache[cacheAddress].dirtyBit = address + offset;
-        cache[cacheAddress].tag = 1;
+        cache[cacheAddress].tag = address + offset;
+        cache[cacheAddress].dirtyBit = 1;
+        cache[cacheAddress].valid = 1;
 
         return cache[cacheAddress].data;
     }
+
     else{
         ++n_cache_memory_hits;
         return cache[cacheAddress].data;
@@ -153,17 +158,19 @@ AWORD read_cache_memory(int address, int offset)
 }
 
 void write_cache_memory(AWORD address, AWORD value, int offset)
-{   
-//    printCache();
-    
+{     
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    //TODO add a dirty bit check or something 
-    if(cache[cacheAddress].dirtyBit != address + offset){
-        write_memory(cache[cacheAddress].dirtyBit, cache[cacheAddress].data);
+
+    if(cache[cacheAddress].dirtyBit == 0 && cache[cacheAddress].valid == 1 && cache[cacheAddress].tag != address + offset){
+        write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
     }
-    cache[cacheAddress].data        = value;
-    cache[cacheAddress].dirtyBit    = address + offset;
-    cache[cacheAddress].tag         = 0;
+
+    cache[cacheAddress].data         = value;
+    cache[cacheAddress].tag          = address + offset;
+    cache[cacheAddress].dirtyBit     = 0;
+    cache[cacheAddress].valid        = 1;
+
+
 }
 
 //  -------------------------------------------------------------------
@@ -453,13 +460,6 @@ void read_coolexe_file(char filename[])
 
 // write the contents to memory
     for(AWORD i = 0; i < size; ++i) {
-
-        if(i < N_CACHE_WORDS){
-            cache[i].data = buffer[i];
-            cache[i].tag = i;
-            cache[i].dirtyBit = 1;
-        }
-
         main_memory[i] = buffer[i];
     }
 }
@@ -479,7 +479,7 @@ int main(int argc, char *argv[])
 //    read_coolexe_file(argv[1]);
 
 // ADDED FOR TESTING MAKE SURE WE UNDO THE COMMENTS BEFORE SUBMIT
-    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/factorial_test2.coolexe");
+    read_coolexe_file("D:/GitHub/CITS2002-Project1/Coolexe/ackermann.coolexe");
 
 //  EXECUTE THE INSTRUCTIONS FOUND IN main_memory[]
     int result = execute_stackmachine();
