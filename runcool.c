@@ -115,7 +115,7 @@ void write_memory(AWORD address, AWORD value)
 
 AWORD read_cache_memory(int address, int offset)
 {   
-    int cacheAddress = (address % N_CACHE_WORDS) + offset;
+    int cacheAddress = (address  + offset) % N_CACHE_WORDS;
     if(cache[cacheAddress].tag != address + offset || cache[cacheAddress].valid == 0){
         ++n_cache_memory_misses;
 
@@ -139,7 +139,7 @@ AWORD read_cache_memory(int address, int offset)
 
 void write_cache_memory(AWORD address, AWORD value, int offset)
 {     
-    int cacheAddress = (address % N_CACHE_WORDS) + offset;
+    int cacheAddress = (address  + offset) % N_CACHE_WORDS;
 
     if(cache[cacheAddress].dirtyBit == 0 && 
             cache[cacheAddress].valid == 1 && 
