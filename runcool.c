@@ -224,7 +224,7 @@ int execute_stackmachine(void)
             // currently holds the off set
                 instruction = read_cache_memory(PC);
 
-            // next opcode to execute
+            // address of next opcode to execute
                 PC = read_cache_memory(FP + 1);
             
             // store functions return value to TOS
