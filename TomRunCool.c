@@ -419,6 +419,7 @@ int execute_stackmachine(void)
         }
     }
 
+    printArray(0, size);
 //  THE RESULT OF EXECUTING THE INSTRUCTIONS IS FOUND ON THE TOP-OF-STACK
     return read_cache_memory(SP, 0);
 }
@@ -462,6 +463,7 @@ void read_coolexe_file(char filename[])
     for(AWORD i = 0; i < size; ++i) {
         main_memory[i] = buffer[i];
     }
+    printArray(0, size);
 }
 
 //  -------------------------------------------------------------------
