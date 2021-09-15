@@ -70,7 +70,9 @@ const char *INSTRUCTION_name[] = {
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
 struct
 {   
-    AWORD         dirtyBit;
+    int8_t        dirtyBit;
+    int8_t        valid;
+    AWORD         tag;
     AWORD         data;
 
 } cache[N_CACHE_WORDS];
@@ -114,12 +116,19 @@ void write_memory(AWORD address, AWORD value)
 AWORD read_cache_memory(int address, int offset)
 {   
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    if(cache[cacheAddress].dirtyBit != address + offset){
+    if(cache[cacheAddress].tag != address + offset || cache[cacheAddress].valid == 0){
         ++n_cache_memory_misses;
 
-        write_memory(cache[cacheAddress].dirtyBit , cache[cacheAddress].data);
+        if(cache[cacheAddress].dirtyBit == 0 && 
+                cache[cacheAddress].valid == 1 && 
+                    cache[cacheAddress].tag != address + offset){
+            write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
+        }
         cache[cacheAddress].data = read_memory(address + offset);
-        cache[cacheAddress].dirtyBit = address + offset;
+        cache[cacheAddress].tag = address + offset;
+        cache[cacheAddress].dirtyBit = 1;
+        cache[cacheAddress].valid = 1;
+
         return cache[cacheAddress].data;
     }
     else{
@@ -129,15 +138,19 @@ AWORD read_cache_memory(int address, int offset)
 }
 
 void write_cache_memory(AWORD address, AWORD value, int offset)
-{       
+{     
     int cacheAddress = (address % N_CACHE_WORDS) + offset;
-    
-    if(cache[cacheAddress].dirtyBit != address + offset){
-        write_memory(cache[cacheAddress].dirtyBit, cache[cacheAddress].data);
+
+    if(cache[cacheAddress].dirtyBit == 0 && 
+            cache[cacheAddress].valid == 1 && 
+                cache[cacheAddress].tag != address + offset){
+        write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
     }
 
-    cache[cacheAddress].data        = value;
-    cache[cacheAddress].dirtyBit    = address + offset;
+    cache[cacheAddress].data         = value;
+    cache[cacheAddress].tag          = address + offset;
+    cache[cacheAddress].dirtyBit     = 0;
+    cache[cacheAddress].valid        = 1;
 }
 
 //  -------------------------------------------------------------------
