@@ -70,8 +70,8 @@ const char *INSTRUCTION_name[] = {
 //  ----  IT IS SAFE TO MODIFY ANYTHING BELOW THIS LINE  --------------
 struct
 {   
-    int8_t        dirtyBit;
-    int8_t        valid;
+    int8_t        dirty;
+    int8_t        isValid;
     AWORD         tag;
     AWORD         data;
 
@@ -113,22 +113,24 @@ void write_memory(AWORD address, AWORD value)
     main_memory[address] = value;
 }
 
+// dirty = 0, not dirty (clean) = 1
+// not valid = 0, is valid = 1
 AWORD read_cache_memory(int address)
 {   
     int cacheAddress = address % N_CACHE_WORDS;
 
-    if(cache[cacheAddress].tag != address || cache[cacheAddress].valid == 0){
+    if(cache[cacheAddress].tag != address || cache[cacheAddress].isValid == 0){
         ++n_cache_memory_misses;
 
-        if(cache[cacheAddress].dirtyBit == 0 && 
-                cache[cacheAddress].valid == 1 && 
+        if(cache[cacheAddress].dirty == 0 && 
+                cache[cacheAddress].isValid == 1 && 
                     cache[cacheAddress].tag != address){
             write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
         }
         cache[cacheAddress].data        = read_memory(address);
         cache[cacheAddress].tag         = address;
-        cache[cacheAddress].dirtyBit    = 1;
-        cache[cacheAddress].valid       = 1;
+        cache[cacheAddress].dirty       = 1;
+        cache[cacheAddress].isValid     = 1;
 
         return cache[cacheAddress].data;
     }
@@ -142,15 +144,15 @@ void write_cache_memory(AWORD address, AWORD value)
 {     
     int cacheAddress = address % N_CACHE_WORDS;
 
-    if(cache[cacheAddress].dirtyBit == 0 && 
-            cache[cacheAddress].valid == 1 && 
+    if(cache[cacheAddress].dirty == 0 && 
+            cache[cacheAddress].isValid == 1 && 
                 cache[cacheAddress].tag != address){
         write_memory(cache[cacheAddress].tag, cache[cacheAddress].data);
     }
     cache[cacheAddress].data         = value;
     cache[cacheAddress].tag          = address;
-    cache[cacheAddress].dirtyBit     = 0;
-    cache[cacheAddress].valid        = 1;
+    cache[cacheAddress].dirty        = 0;
+    cache[cacheAddress].isValid      = 1;
 }
 
 //  -------------------------------------------------------------------
