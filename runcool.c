@@ -267,7 +267,7 @@ int execute_stackmachine(void)
 
                     AWORD val = read_cache_memory(PC);
                     ++PC;
-
+                    //Each 16-bits integer contain two char
                     char a = val % 256;
                     char b = val / 256;
 
