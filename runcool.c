@@ -171,6 +171,7 @@ int execute_stackmachine(void)
         IWORD instruction   = read_cache_memory(PC);
         ++PC;
 
+//      printf("%s\n", INSTRUCTION_name[instruction]);
         if(instruction == I_HALT){
             break;
         }
